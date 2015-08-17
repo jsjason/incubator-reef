@@ -24,6 +24,7 @@ import org.apache.reef.client.DriverLauncher;
 import org.apache.reef.client.LauncherStatus;
 import org.apache.reef.examples.group.bgd.parameters.ModelDimensions;
 import org.apache.reef.examples.group.broadcast.parameters.NumberOfReceivers;
+import org.apache.reef.examples.watcher.WatcherConfiguration;
 import org.apache.reef.io.network.group.impl.driver.GroupCommService;
 import org.apache.reef.runtime.local.client.LocalRuntimeConfiguration;
 import org.apache.reef.runtime.yarn.client.YarnClientConfiguration;
@@ -128,7 +129,7 @@ public final class BroadcastREEF {
     final Configuration groupCommServConfiguration = GroupCommService.getConfiguration();
 
     final Configuration mergedDriverConfiguration = Tang.Factory.getTang()
-        .newConfigurationBuilder(groupCommServConfiguration, driverConfiguration)
+        .newConfigurationBuilder(groupCommServConfiguration, driverConfiguration, WatcherConfiguration.CONF.build())
         .bindNamedParameter(ModelDimensions.class, Integer.toString(dimensions))
         .bindNamedParameter(NumberOfReceivers.class, Integer.toString(numberOfReceivers))
         .build();
