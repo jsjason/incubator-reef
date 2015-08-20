@@ -1,17 +1,20 @@
 /*
- * Copyright (C) 2015 Seoul National University
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package org.apache.reef.examples.watcher;
 
@@ -68,8 +71,24 @@ public final class Watcher {
     }
   }
 
-  private void reportEvent(final String name, final String state) {
-    report("http://localhost:1337/event/create?type=" + name + "&name=" + state + "&job=" + id);
+  private void reportEndEvent() {
+    report("http://localhost:1337/job/update/" + id + "?state=FINISHED");
+  }
+
+  private void reportEvent(final String type, final String name, final String evaluatorId) {
+    final StringBuilder urlBuilder = new StringBuilder()
+        .append("http://localhost:1337/event/create")
+        .append("?type=")
+        .append(type)
+        .append("&name=")
+        .append(name)
+        .append("&job=")
+        .append(id);
+    if (evaluatorId != null) {
+      urlBuilder.append("&evaluatorId=")
+          .append(evaluatorId);
+    }
+    report(urlBuilder.toString());
   }
 
   private String report(final String url) {
@@ -87,7 +106,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final RuntimeStart value) {
-      reportEvent("RuntimeStart_" + value.getTimeStamp(), "START");
+      reportEvent("RuntimeStart", driverIdentifier, null);
     }
   }
 
@@ -95,7 +114,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final StartTime value) {
-      reportEvent("Driver_Start_" + value.getTimeStamp(), "START");
+      reportEvent("StartTime", driverIdentifier, null);
     }
   }
 
@@ -103,7 +122,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final StopTime value) {
-      reportEvent("Driver_Stop_" + value.getTimeStamp(), "STOP");
+      reportEvent("StopTime", driverIdentifier, null);
     }
   }
 
@@ -111,7 +130,8 @@ public final class Watcher {
 
     @Override
     public void onNext(final RuntimeStop value) {
-      reportEvent("RuntimeStop_" + value.getTimeStamp(), "STOP");
+      reportEvent("RuntimeStop", driverIdentifier, null);
+      reportEndEvent();
     }
   }
 
@@ -119,7 +139,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final ActiveContext value) {
-      reportEvent("ContextStart_" + value.getId(), "Start");
+      reportEvent("ContextStart", value.getId(), value.getEvaluatorId());
     }
   }
 
@@ -127,7 +147,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final ClosedContext value) {
-      reportEvent("ContextStop_" + value.getId(), "Stop");
+      reportEvent("ClosedContext", value.getId(), value.getEvaluatorId());
     }
   }
 
@@ -135,7 +155,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final FailedContext value) {
-      reportEvent("FailedContext_" + value.getId(), "Failed");
+      reportEvent("FailedContext" , value.getId(), value.getEvaluatorId());
     }
   }
 
@@ -143,7 +163,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final AllocatedEvaluator value) {
-      reportEvent("EvaluatorAllocated_" + value.getId(), "Allocated");
+      reportEvent("AllocatedEvaluator", value.getId(), null);
     }
   }
 
@@ -151,7 +171,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final FailedEvaluator value) {
-      reportEvent("FailedEvaluator_" + value.getId(), "Failed");
+      reportEvent("FailedEvaluator", value.getId(), null);
     }
   }
 
@@ -159,7 +179,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final CompletedEvaluator value) {
-      reportEvent("CompletedEvaluator_" + value.getId(), "Complete");
+      reportEvent("CompletedEvaluator", value.getId(), null);
     }
   }
 
@@ -167,7 +187,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final CompletedTask value) {
-      reportEvent("CompletedTask_" + value.getId(), "Complete");
+      reportEvent("CompletedTask", value.getId(), value.getActiveContext().getEvaluatorId());
     }
   }
 
@@ -175,7 +195,13 @@ public final class Watcher {
 
     @Override
     public void onNext(final FailedTask value) {
-      reportEvent("FailedTask_" + value.getId(), "Failed");
+      final String evaluatorId;
+      if (value.getActiveContext().isPresent()) {
+        evaluatorId = value.getActiveContext().get().getEvaluatorId();
+      } else {
+        evaluatorId = null;
+      }
+      reportEvent("CompletedTask", value.getId(), evaluatorId);
     }
   }
 
@@ -183,7 +209,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final RunningTask value) {
-      reportEvent("RunningTask_" + value.getId() + "_ContextID_" + value.getActiveContext().getId(), "Running");
+      reportEvent("RunningTask", value.getId(), value.getActiveContext().getEvaluatorId());
     }
   }
 
@@ -191,8 +217,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final TaskMessage value) {
-      reportEvent("TaskMessage_[Context_ID_" +
-          value.getContextId() + "][source" + value.getMessageSourceID() + "]", "message");
+      reportEvent("TaskMessage", value.getId(), value.getContextId());
     }
   }
 
@@ -200,7 +225,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final SuspendedTask value) {
-      reportEvent("SuspendedTask_" + value.getId(), "Suspended");
+      reportEvent("SuspendedTask", value.getId(), value.getActiveContext().getEvaluatorId());
     }
   }
 }
