@@ -163,7 +163,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final AllocatedEvaluator value) {
-      reportEvent("AllocatedEvaluator", value.getId(), null);
+      reportEvent("AllocatedEvaluator", value.getId(), value.getId());
     }
   }
 
@@ -171,7 +171,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final FailedEvaluator value) {
-      reportEvent("FailedEvaluator", value.getId(), null);
+      reportEvent("FailedEvaluator", value.getId(), value.getId());
     }
   }
 
@@ -179,7 +179,7 @@ public final class Watcher {
 
     @Override
     public void onNext(final CompletedEvaluator value) {
-      reportEvent("CompletedEvaluator", value.getId(), null);
+      reportEvent("CompletedEvaluator", value.getId(), value.getId());
     }
   }
 
