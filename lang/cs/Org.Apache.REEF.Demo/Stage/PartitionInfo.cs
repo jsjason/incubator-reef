@@ -16,6 +16,7 @@
 // under the License.
 
 using System.Collections.Generic;
+using System.IO;
 using Org.Apache.REEF.Driver.Context;
 
 namespace Org.Apache.REEF.Demo.Stage
@@ -27,6 +28,7 @@ namespace Org.Apache.REEF.Demo.Stage
 
         public PartitionInfo(string id, params IActiveContext[] loadedContexts)
         {
+            Stream
             _id = id;
             _loadedContexts = new List<IActiveContext>(loadedContexts);
         }

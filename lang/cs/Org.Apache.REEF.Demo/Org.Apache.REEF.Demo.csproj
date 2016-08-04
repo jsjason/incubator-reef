@@ -51,6 +51,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Stage\PartitionInfo.cs" />
     <Compile Include="Task\DataSetManager.cs" />
+    <Compile Include="Task\InMemoryOutputPartition.cs" />
+    <Compile Include="Task\IOutputPartition.cs" />
+    <Compile Include="Task\ITransform.cs" />
     <Compile Include="Task\SerializedInitialDataLoadPartitions.cs" />
     <Compile Include="Task\FileByteSerializer.cs" />
     <Compile Include="Task\IDataSetManager.cs" />

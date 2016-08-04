@@ -15,31 +15,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-using System.Collections.Generic;
-using Org.Apache.REEF.Driver.Context;
-using Org.Apache.REEF.Driver.Evaluator;
-using Org.Apache.REEF.Driver.Task;
-
-namespace Org.Apache.REEF.Demo.Stage
+namespace Org.Apache.REEF.Demo.Task
 {
-    public abstract class MiniDriver
+    public interface IOutputPartition<T>
     {
-        public abstract void OnStart(DataSetInfo dataSetInfo);
+        string Id { get; }
 
-        public virtual void OnRunningTask(IRunningTask runningTask)
-        {
-        }
-
-        public virtual void OnFailedTask(IFailedTask failedTask)
-        {
-        }
-
-        public virtual void OnFailedContext(IFailedContext failedContext)
-        {
-        }
-
-        public virtual void OnFailedEvaluator(IFailedEvaluator failedEvaluator)
-        {
-        }
+        T GetPartitionHandle();
     }
 }
