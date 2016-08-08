@@ -15,27 +15,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-namespace Org.Apache.REEF.Demo.Task
+using Org.Apache.REEF.Demo.Stage;
+
+namespace Org.Apache.REEF.Demo.Driver
 {
-    public sealed class InMemoryOutputPartition<T> : IOutputPartition<T>
+    public interface IMiniDriverStarted
     {
-        private readonly string _id;
-        private readonly T _obj;
-
-        public InMemoryOutputPartition(string id, T obj)
-        {
-            _id = id;
-            _obj = obj;
-        }
-
-        public string Id
-        {
-            get { return _id; }
-        }
-
-        public T GetPartitionHandle()
-        {
-            return _obj;
-        }
+        DataSetInfo DataSetInfo { get; }
     }
 }

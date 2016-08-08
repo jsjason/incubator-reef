@@ -21,6 +21,6 @@ namespace Org.Apache.REEF.Demo.Task
 {
     public interface ITransform<TInput, TOutput>
     {
-        IOutputPartition<TOutput> Apply(IInputPartition<TInput> inputPartition);
+        TOutput Apply(TInput input);
     }
 }

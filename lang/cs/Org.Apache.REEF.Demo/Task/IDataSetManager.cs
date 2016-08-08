@@ -24,8 +24,6 @@ namespace Org.Apache.REEF.Demo.Task
         /// <summary>
         /// Fetch a partition using its id.
         /// </summary>
-        /// <param name="partitionId"></param>
-        /// <returns></returns>
-        IInputPartition<T> FetchPartition<T>(string partitionId);
+        IInputPartition<T> FetchPartition<T>(string dataSetId, string partitionId);
     }
 }

@@ -17,31 +17,40 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using Org.Apache.REEF.IO.PartitionedData;
 using Org.Apache.REEF.Tang.Annotations;
+using Org.Apache.REEF.Utilities.Attributes;
 
 namespace Org.Apache.REEF.Demo.Task
 {
+    [NotThreadSafe]
     public sealed class DataSetManager : IDataSetManager
     {
-        private readonly ConcurrentDictionary<string, IInputPartition<object>> _localPartitions;
+        private readonly IDictionary<string, ISet<IInputPartition<object>>> _localPartitions;
 
         [Inject]
         private DataSetManager()
         {
-            _localPartitions = new ConcurrentDictionary<string, IInputPartition<object>>();
+            _localPartitions = new Dictionary<string, ISet<IInputPartition<object>>>();
         }
 
-        internal void AddLocalPartition(string id, IInputPartition<object> inputPartition)
+        internal void AddLocalPartition(string dataSetId, IInputPartition<object> inputPartition)
         {
-            _localPartitions[id] = inputPartition;
-        }
-
-        public IInputPartition<T> FetchPartition<T>(string partitionId)
-        {
-            if (_localPartitions.ContainsKey(partitionId))
+            if (!_localPartitions.ContainsKey(dataSetId))
             {
-                return (IInputPartition<T>)_localPartitions[partitionId];
+                _localPartitions.Add(dataSetId, new HashSet<IInputPartition<object>>());
+            }
+
+            _localPartitions[dataSetId].Add(inputPartition);
+        }
+
+        public IInputPartition<T> FetchPartition<T>(string dataSetId, string partitionId)
+        {
+            if (_localPartitions.ContainsKey(dataSetId))
+            {
+                return (IInputPartition<T>) _localPartitions[dataSetId].Single(partition => partition.Id.Equals(partitionId));
             }
             else
             {

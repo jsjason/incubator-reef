@@ -18,9 +18,11 @@
 using System;
 using System.Collections.Generic;
 using Org.Apache.REEF.Demo.Stage;
+using Org.Apache.REEF.Demo.Task;
 using Org.Apache.REEF.Driver.Context;
 using Org.Apache.REEF.Tang.Implementations.Tang;
 using Org.Apache.REEF.Tang.Interface;
+using Org.Apache.REEF.Tang.Util;
 
 namespace Org.Apache.REEF.Demo.Driver
 {
@@ -43,7 +45,11 @@ namespace Org.Apache.REEF.Demo.Driver
 
         public IDataSet<T2> TransformPartitions<T2>(IConfiguration transformConf)
         {
-            throw new NotImplementedException();
+            IInjector injector = TangFactory.GetTang().NewInjector(transformConf);
+            if (!injector.IsInjectable(typeof(ITransform<T, T2>)))
+            {
+                throw new Exception("Given configuration does not contain the correct ITransform configuration.");
+            }
         }
 
         public IDataSet<T2> RunStage<T2>(IConfiguration stageConf)

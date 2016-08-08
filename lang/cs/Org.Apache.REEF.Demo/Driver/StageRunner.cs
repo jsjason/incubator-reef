@@ -15,12 +15,16 @@
 // specific language governing permissions and limitations
 // under the License.
 
-namespace Org.Apache.REEF.Demo.Task
+namespace Org.Apache.REEF.Demo.Driver
 {
-    public interface IOutputPartition<T>
+    internal sealed class StageRunner
     {
-        string Id { get; }
+        internal StageRunner()
+        {
+        }
 
-        T GetPartitionHandle();
+        internal void OnCompleted()
+        {
+        }
     }
 }
