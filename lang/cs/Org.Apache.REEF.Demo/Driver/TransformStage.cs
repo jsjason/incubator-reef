@@ -15,37 +15,29 @@
 // specific language governing permissions and limitations
 // under the License.
 
-using System.Collections.Generic;
-using System.IO;
-using Org.Apache.REEF.Driver.Context;
+using System;
+using Org.Apache.REEF.Tang.Annotations;
 
-namespace Org.Apache.REEF.Demo.Stage
+namespace Org.Apache.REEF.Demo.Driver
 {
-    public class PartitionInfo
+    internal sealed class TransformStage : IObserver<IMiniDriverStarted>
     {
-        private readonly string _id;
-        private readonly IList<IActiveContext> _loadedContexts;
-
-        public PartitionInfo(string id, params IActiveContext[] loadedContexts)
+        [Inject]
+        private TransformStage()
         {
-            _id = id;
-            _loadedContexts = new List<IActiveContext>(loadedContexts);
         }
 
-        /// <summary>
-        /// String identifier of this partition.
-        /// </summary>
-        public string Id
+        public void OnNext(IMiniDriverStarted miniDriverStarted)
         {
-            get { return _id; }
+            Console.WriteLine(this + " " + miniDriverStarted.DataSetInfo.Id);
         }
 
-        /// <summary>
-        /// LoadedContexts of the blocks that belong to this partition.
-        /// </summary>
-        public IList<IActiveContext> LoadedContexts
+        public void OnError(Exception e)
         {
-            get { return _loadedContexts; }
+        }
+
+        public void OnCompleted()
+        {
         }
     }
 }

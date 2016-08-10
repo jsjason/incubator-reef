@@ -42,12 +42,8 @@ final class DriverRestartClrHandlersInitializer implements ClrHandlersInitialize
   }
 
   @Override
-  public BridgeHandlerManager getClrHandlers(final String portNumber,
-                                             final EvaluatorRequestorBridge evaluatorRequestorBridge) {
-    final BridgeHandlerManager bridgeHandlerManager = new BridgeHandlerManager();
-    NativeInterop.callClrSystemOnRestartHandler(portNumber, bridgeHandlerManager, evaluatorRequestorBridge,
+  public void getClrHandlers(final String portNumber, final EvaluatorRequestorBridge evaluatorRequestorBridge) {
+    NativeInterop.callClrSystemOnRestartHandler(portNumber, evaluatorRequestorBridge,
         new DriverRestartedBridge(driverRestarted));
-
-    return bridgeHandlerManager;
   }
 }

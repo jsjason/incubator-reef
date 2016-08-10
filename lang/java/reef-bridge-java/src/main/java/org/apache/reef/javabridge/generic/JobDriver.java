@@ -167,7 +167,7 @@ public final class JobDriver {
     this.definedRuntimes = definedRuntimes;
   }
 
-  private void setupBridge(final ClrHandlersInitializer initializer) {
+  private void setupBridge() {
     // Signal to the clr buffered log handler that the driver has started and that
     // we can begin logging
     LOG.log(Level.INFO, "Initializing CLRBufferedLogHandler...");
@@ -180,23 +180,14 @@ public final class JobDriver {
         LOG.log(Level.INFO, "CLRBufferedLogHandler init complete.");
       }
 
-      final String portNumber = httpServer == null ? null : Integer.toString(httpServer.getPort());
-      if (portNumber != null) {
-        try {
-          final File outputFileName = new File(reefFileNames.getDriverHttpEndpoint());
-          BufferedWriter out = new BufferedWriter(
-              new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8));
-          out.write(localAddressProvider.getLocalAddress() + ":" + portNumber + "\n");
-          out.close();
-        } catch (IOException ex) {
-          throw new RuntimeException(ex);
-        }
-      }
+      final String portNumber = resolvePortNumberString();
 
       this.evaluatorRequestorBridge =
           new EvaluatorRequestorBridge(JobDriver.this.evaluatorRequestor, false, loggingScopeFactory,
                   JobDriver.this.definedRuntimes);
-      JobDriver.this.handlerManager = initializer.getClrHandlers(portNumber, evaluatorRequestorBridge);
+      JobDriver.this.handlerManager = new BridgeHandlerManager();
+      NativeInterop.clrSystemSetupBridgeHandlerManager(portNumber,
+          JobDriver.this.handlerManager, evaluatorRequestorBridge);
 
       try (final LoggingScope lp =
                this.loggingScopeFactory.getNewLoggingScope("setupBridge::clrSystemHttpServerHandlerOnNext")) {
@@ -218,6 +209,28 @@ public final class JobDriver {
     LOG.log(Level.INFO, "CLR Bridge setup.");
   }
 
+  private String resolvePortNumberString() {
+    final String portNumber = httpServer == null ? null : Integer.toString(httpServer.getPort());
+    if (portNumber != null) {
+      try {
+        final File outputFileName = new File(reefFileNames.getDriverHttpEndpoint());
+        BufferedWriter out = new BufferedWriter(
+            new OutputStreamWriter(new FileOutputStream(outputFileName), StandardCharsets.UTF_8));
+        out.write(localAddressProvider.getLocalAddress() + ":" + portNumber + "\n");
+        out.close();
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+      }
+    }
+
+    return portNumber;
+  }
+
+  private void initializeClrHandlers(final ClrHandlersInitializer initializer) {
+    final String portNumber = resolvePortNumberString();
+    initializer.getClrHandlers(portNumber, evaluatorRequestorBridge);
+  }
+
   private CLRBufferedLogHandler getCLRBufferedLogHandler() {
     for (final Handler handler : Logger.getLogger("").getHandlers()) {
       if (handler instanceof CLRBufferedLogHandler) {
@@ -232,14 +245,21 @@ public final class JobDriver {
       eval.setProcess(process);
       LOG.log(Level.INFO, "Allocated Evaluator: {0}, total running running {1}",
           new Object[]{eval.getId(), JobDriver.this.contexts.size()});
+      LOG.log(Level.INFO, "Allocated Evaluator: {0}, total running running {1}",
+          new Object[]{eval.getId(), JobDriver.this.contexts.size()});
       if (JobDriver.this.handlerManager.getAllocatedEvaluatorHandler() == 0) {
+        LOG.log(Level.INFO, "Got trapped...");
         throw new RuntimeException("Allocated Evaluator Handler not initialized by CLR.");
       }
+      LOG.log(Level.INFO, "Went past the if clause.");
       final AllocatedEvaluatorBridge allocatedEvaluatorBridge =
           this.allocatedEvaluatorBridgeFactory.getAllocatedEvaluatorBridge(eval, this.nameServerInfo);
+      LOG.log(Level.INFO, "Cleared allocatedEValuatorBridge.");
       allocatedEvaluatorBridges.put(allocatedEvaluatorBridge.getId(), allocatedEvaluatorBridge);
+      LOG.log(Level.INFO, "About to call the black hole!");
       NativeInterop.clrSystemAllocatedEvaluatorHandlerOnNext(
           JobDriver.this.handlerManager.getAllocatedEvaluatorHandler(), allocatedEvaluatorBridge, this.interopLogger);
+      LOG.log(Level.INFO, "Finished going through the black hole!");
     }
   }
 
@@ -582,10 +602,12 @@ public final class JobDriver {
     public void onNext(final StartTime startTime) {
       try (final LoggingScope ls = loggingScopeFactory.driverStart(startTime)) {
         synchronized (JobDriver.this) {
-
-          setupBridge(new DriverStartClrHandlersInitializer(startTime));
-          LOG.log(Level.INFO, "Driver Started");
+          setupBridge();
+          LOG.log(Level.INFO, "Finished CLR bridge setup for {0}", startTime);
         }
+
+        initializeClrHandlers(new DriverStartClrHandlersInitializer(startTime));
+        LOG.log(Level.INFO, "Driver Started");
       }
     }
   }
@@ -599,12 +621,13 @@ public final class JobDriver {
     public void onNext(final DriverRestarted driverRestarted) {
       try (final LoggingScope ls = loggingScopeFactory.driverRestart(driverRestarted.getStartTime())) {
         synchronized (JobDriver.this) {
-
           JobDriver.this.isRestarted = true;
-          setupBridge(new DriverRestartClrHandlersInitializer(driverRestarted));
-
-          LOG.log(Level.INFO, "Driver Restarted and CLR bridge set up.");
+          setupBridge();
+          LOG.log(Level.INFO, "Finished CLR bridge setup for {0}", driverRestarted);
         }
+
+        initializeClrHandlers(new DriverRestartClrHandlersInitializer(driverRestarted));
+        LOG.log(Level.INFO, "Driver Restarted");
       }
     }
   }

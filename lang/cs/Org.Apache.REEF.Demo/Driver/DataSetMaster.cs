@@ -16,6 +16,7 @@
 // under the License.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using Org.Apache.REEF.Common.Context;
@@ -44,6 +45,8 @@ namespace Org.Apache.REEF.Demo.Driver
         private readonly IPartitionDescriptorFetcher _partitionDescriptorFetcher;
         private readonly AvroConfigurationSerializer _avroConfigurationSerializer;
         private readonly IDictionary<string, Queue<IConfiguration>> _partitionConfigurationsForDatasets;
+        private readonly IDictionary<string, CountdownEvent> _latchesForDatasets;
+        private readonly ConcurrentDictionary<string, string> _contextIdToDataSetId;
 
         [Inject]
         private DataSetMaster(IEvaluatorRequestor evaluatorRequestor,
@@ -54,6 +57,8 @@ namespace Org.Apache.REEF.Demo.Driver
             _partitionDescriptorFetcher = partitionDescriptorFetcher;
             _avroConfigurationSerializer = avroConfigurationSerializer;
             _partitionConfigurationsForDatasets = new Dictionary<string, Queue<IConfiguration>>();
+            _latchesForDatasets = new Dictionary<string, CountdownEvent>();
+            _contextIdToDataSetId = new ConcurrentDictionary<string, string>();
         }
 
         public IDataSet<T> Load<T>(Uri uri)
@@ -62,7 +67,6 @@ namespace Org.Apache.REEF.Demo.Driver
             Logger.Log(Level.Info, "Load data from {0}", dataSetId);
 
             Queue<IConfiguration> partitionConfigurations = new Queue<IConfiguration>();
-            _partitionConfigurationsForDatasets[dataSetId] = partitionConfigurations;
             foreach (var partitionDescriptor in _partitionDescriptorFetcher.GetPartitionDescriptors(uri))
             {
                 var partitionConf = partitionDescriptor.GetPartitionConfiguration();
@@ -73,20 +77,21 @@ namespace Org.Apache.REEF.Demo.Driver
                 partitionConfigurations.Enqueue(finalPartitionConf);
             }
 
+            Logger.Log(Level.Info, "Submit evaluators for {0}", dataSetId);
             lock (partitionConfigurations)
             {
+                _partitionConfigurationsForDatasets[dataSetId] = partitionConfigurations;
+                _latchesForDatasets[dataSetId] = new CountdownEvent(partitionConfigurations.Count);
+
                 _evaluatorRequestor.Submit(_evaluatorRequestor.NewBuilder()
                     .SetNumber(partitionConfigurations.Count)
                     .SetMegabytes(1024)
                     .Build());
-
-                // The idea is to wait until all evaluators have been loaded with partitions,
-                // then return with the appropriate IDataSet object.
-                // However, the line below blocks OnNext(IAllocatedEvaluator allocatedEvaluator) from firing, for some reason.
-
-                // Monitor.Wait(partitionConfigurations);
             }
 
+            Logger.Log(Level.Info, "Waiting evaluators for {0}", dataSetId);
+            _latchesForDatasets[dataSetId].Wait();
+            Logger.Log(Level.Info, "Done waiting evaluators for {0}", dataSetId);
             return null; // must return IDataSet
         }
 
@@ -95,15 +100,20 @@ namespace Org.Apache.REEF.Demo.Driver
             Logger.Log(Level.Info, "Got {0}", allocatedEvaluator);
 
             IConfiguration partitionConf = null;
+            string dataSetId = string.Empty;
             foreach (KeyValuePair<string, Queue<IConfiguration>> pair in _partitionConfigurationsForDatasets)
             {
-                string dataSetId = pair.Key;
+                dataSetId = pair.Key;
                 Queue<IConfiguration> partitionConfigurations = pair.Value;
                 lock (partitionConfigurations)
                 {
                     if (partitionConfigurations.Count == 0)
                     {
                         //// this dataset has already been given enough evaluators
+                        Logger.Log(Level.Verbose,
+                            "Dataset {0} has been given enough evaluators, but is still in dictionary. Will remove.",
+                            dataSetId);
+                        //// _partitionConfigurationsForDatasets.Remove(dataSetId);
                         continue;
                     }
 
@@ -113,7 +123,6 @@ namespace Org.Apache.REEF.Demo.Driver
                         Logger.Log(Level.Verbose,
                             "Dataset {0} has been given enough evaluators. Will remove from dictionary.",
                             dataSetId);
-                        _partitionConfigurationsForDatasets.Remove(dataSetId);
 
                         Monitor.Pulse(partitionConfigurations);
                     }
@@ -134,10 +143,12 @@ namespace Org.Apache.REEF.Demo.Driver
                     _avroConfigurationSerializer.ToString(partitionConf))
                 .Build();
 
+            string contextId = string.Format("Context-{0}", allocatedEvaluator.Id);
             IConfiguration contextConf = ContextConfiguration.ConfigurationModule
-                .Set(ContextConfiguration.Identifier, "Context-" + allocatedEvaluator.Id)
+                .Set(ContextConfiguration.Identifier, contextId)
                 .Set(ContextConfiguration.OnContextStart, GenericType<DataLoadContext>.Class)
                 .Build();
+            _contextIdToDataSetId[contextId] = dataSetId;
 
             allocatedEvaluator.SubmitContextAndService(contextConf, serviceConf);
         }
@@ -145,6 +156,9 @@ namespace Org.Apache.REEF.Demo.Driver
         public void OnNext(IActiveContext activeContext)
         {
             Logger.Log(Level.Info, "Got {0}", activeContext);
+            string dataSetId = _contextIdToDataSetId[activeContext.Id];
+            Logger.Log(Level.Info, "Signal CountDownLatch for {0}", dataSetId);
+            _latchesForDatasets[dataSetId].Signal();
 
             // must pass this activeContext to the user
             // For now, just dispose contexts right away for demonstration

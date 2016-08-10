@@ -49,7 +49,7 @@ namespace Org.Apache.REEF.Demo
                 .Build();
 
             IConfiguration addConf = TangFactory.GetTang().NewConfigurationBuilder()
-                .BindNamedParameter<DataSetUri, string>(GenericType<DataSetUri>.Class, @"C:\some\file\or\folder")
+                .BindNamedParameter<DataSetUri, string>(GenericType<DataSetUri>.Class, @"C:\Users\t-joosj\Documents\abc")
                 .Build();
 
             JobRequest jobRequest = _jobRequestBuilder

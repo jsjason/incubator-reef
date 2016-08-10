@@ -15,37 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-using System.Collections.Generic;
-using System.IO;
-using Org.Apache.REEF.Driver.Context;
+using Org.Apache.REEF.Demo.Stage;
 
-namespace Org.Apache.REEF.Demo.Stage
+namespace Org.Apache.REEF.Demo.Driver
 {
-    public class PartitionInfo
+    internal sealed class MiniDriverStarted : IMiniDriverStarted
     {
-        private readonly string _id;
-        private readonly IList<IActiveContext> _loadedContexts;
+        private readonly DataSetInfo _dataSetInfo;
 
-        public PartitionInfo(string id, params IActiveContext[] loadedContexts)
+        internal MiniDriverStarted(DataSetInfo dataSetInfo)
         {
-            _id = id;
-            _loadedContexts = new List<IActiveContext>(loadedContexts);
+            _dataSetInfo = dataSetInfo;
         }
 
-        /// <summary>
-        /// String identifier of this partition.
-        /// </summary>
-        public string Id
+        public DataSetInfo DataSetInfo
         {
-            get { return _id; }
-        }
-
-        /// <summary>
-        /// LoadedContexts of the blocks that belong to this partition.
-        /// </summary>
-        public IList<IActiveContext> LoadedContexts
-        {
-            get { return _loadedContexts; }
+            get { return _dataSetInfo; }
         }
     }
 }

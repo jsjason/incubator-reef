@@ -15,16 +15,46 @@
 // specific language governing permissions and limitations
 // under the License.
 
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using Org.Apache.REEF.Demo.Stage;
+using Org.Apache.REEF.Tang.Annotations;
+
 namespace Org.Apache.REEF.Demo.Driver
 {
     internal sealed class StageRunner
     {
-        internal StageRunner()
+        private readonly DataSetInfo _dataSetInfo;
+        private readonly CountdownEvent _countdownEvent;
+        private readonly ISet<IObserver<IMiniDriverStarted>> _startHandlers;
+
+        [Inject]
+        private StageRunner(DataSetInfo dataSetInfo,
+                             [Parameter(typeof(MiniDriverNamedParameters.MiniDriverStartedHandlers))] ISet<IObserver<IMiniDriverStarted>> startHandlers)
         {
+            _dataSetInfo = dataSetInfo;
+            _countdownEvent = new CountdownEvent(1);
+            _startHandlers = startHandlers;
         }
 
-        internal void OnCompleted()
+        internal void StartStage()
         {
+            IMiniDriverStarted miniDriverStarted = new MiniDriverStarted(_dataSetInfo);
+            foreach (var startHandler in _startHandlers)
+            {
+                startHandler.OnNext(miniDriverStarted);
+            }
+        }
+
+        internal void EndStage()
+        {
+            _countdownEvent.Signal();
+        }
+
+        internal void AwaitStage()
+        {
+            _countdownEvent.Wait();
         }
     }
 }

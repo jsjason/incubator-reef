@@ -42,6 +42,7 @@ namespace Org.Apache.REEF.Driver.Bridge
         {
             using (LOGGER.LogFunction("ClrSystemHandlerWrapper::Call_ClrSystemAllocatedEvaluatorHandler_OnNext"))
             {
+                LOGGER.Log(Level.Info, "I SHOULD BE CALLED...");
                 GCHandle gc = GCHandle.FromIntPtr((IntPtr)handle);
                 ClrSystemHandler<IAllocatedEvaluator> obj = (ClrSystemHandler<IAllocatedEvaluator>)gc.Target;
                 obj.OnNext(new AllocatedEvaluator(clr2Java, _driverBridge.ConfigurationProviders));
@@ -245,37 +246,35 @@ namespace Org.Apache.REEF.Driver.Bridge
             }
         }
 
-        public static BridgeHandlerManager Call_ClrSystemStartHandler_OnStart(
-            DateTime startTime, 
+        public static void Call_ClrSystemStartHandler_OnStart(
+            DateTime startTime)
+        {
+            using (LOGGER.LogFunction("ClrSystemHandlerWrapper::Call_ClrSystemStartHandler_OnStart"))
+            {
+                LOGGER.Log(Level.Info, "*** Start time is " + startTime);
+                _driverBridge.StartHandlersOnNext(startTime);
+            }   
+        }
+
+        public static void Call_ClrSystemRestartHandler_OnRestart(
+            IDriverRestartedClr2Java driverRestartedClr2Java)
+        {
+            using (LOGGER.LogFunction("ClrSystemHandlerWrapper::Call_ClrSystemRestartHandler_OnRestart"))
+            {
+                LOGGER.Log(Level.Info, "*** Restart time is " + driverRestartedClr2Java.GetStartTime());
+                _driverBridge.RestartHandlerOnNext(driverRestartedClr2Java);
+            }
+        }
+
+        public static BridgeHandlerManager Call_ClrSystem_SetupBridgeHandlerManager(
             string httpServerPort,
             IEvaluatorRequestorClr2Java evaluatorRequestorClr2Java)
         {
             IEvaluatorRequestor evaluatorRequestor = new EvaluatorRequestor(evaluatorRequestorClr2Java);
-            using (LOGGER.LogFunction("ClrSystemHandlerWrapper::Call_ClrSystemStartHandler_OnStart"))
+            using (LOGGER.LogFunction("ClrSystemHandlerWrapper::Call_ClrSystem_SetupBridgeHandlerManager"))
             {
-                LOGGER.Log(Level.Info, "*** Start time is " + startTime);
                 LOGGER.Log(Level.Info, "*** httpServerPort: " + httpServerPort);
-                var handlers = GetHandlers(httpServerPort, evaluatorRequestor);
-                _driverBridge.StartHandlersOnNext(startTime);
-
-                return handlers;
-            }   
-        }
-
-        public static BridgeHandlerManager Call_ClrSystemRestartHandler_OnRestart(
-            string httpServerPort,
-            IEvaluatorRequestorClr2Java evaluatorRequestorClr2Java,
-            IDriverRestartedClr2Java driverRestartedClr2Java)
-        {
-            IEvaluatorRequestor evaluatorRequestor = new EvaluatorRequestor(evaluatorRequestorClr2Java);
-            using (LOGGER.LogFunction("ClrSystemHandlerWrapper::Call_ClrSystemRestartHandler_OnRestart"))
-            {
-                LOGGER.Log(Level.Info, "*** Restart time is " + driverRestartedClr2Java.GetStartTime());
-                LOGGER.Log(Level.Info, "*** httpServerPort: " + httpServerPort);
-                var handlers = GetHandlers(httpServerPort, evaluatorRequestor);
-                _driverBridge.RestartHandlerOnNext(driverRestartedClr2Java);
-
-                return handlers;
+                return GetHandlers(httpServerPort, evaluatorRequestor);
             }
         }
 

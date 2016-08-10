@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using Org.Apache.REEF.Demo.Stage;
 using Org.Apache.REEF.Demo.Task;
 using Org.Apache.REEF.Driver.Context;
+using Org.Apache.REEF.Tang.Implementations.Configuration;
 using Org.Apache.REEF.Tang.Implementations.Tang;
 using Org.Apache.REEF.Tang.Interface;
 using Org.Apache.REEF.Tang.Util;
@@ -29,13 +30,13 @@ namespace Org.Apache.REEF.Demo.Driver
     public class DataSet<T> : IDataSet<T>
     {
         private readonly string _id;
-        private readonly IDictionary<IActiveContext, ISet<PartitionInfo>> _partitionDistribution;
+        private readonly DataSetInfo _dataSetInfo;
 
         public DataSet(string id,
-                       IDictionary<IActiveContext, ISet<PartitionInfo>> partitionDistribution)
+                       DataSetInfo dataSetInfo)
         {
             _id = id;
-            _partitionDistribution = partitionDistribution;
+            _dataSetInfo = dataSetInfo;
         }
 
         public string Id
@@ -50,12 +51,22 @@ namespace Org.Apache.REEF.Demo.Driver
             {
                 throw new Exception("Given configuration does not contain the correct ITransform configuration.");
             }
+
+            IConfiguration stageConf = MiniDriverConfiguration.ConfigurationModule
+                .Set(MiniDriverConfiguration.OnDriverStarted, GenericType<TransformStage>.Class)
+                .Build();
+
+            return RunStage<T2>(Configurations.Merge(transformConf, stageConf));
         }
 
         public IDataSet<T2> RunStage<T2>(IConfiguration stageConf)
         {
-            MiniDriver miniDriver = TangFactory.GetTang().NewInjector(stageConf).GetInstance<MiniDriver>();
-            miniDriver.OnStart(_partitionDistribution);
+            IInjector injector = TangFactory.GetTang().NewInjector(stageConf);
+            injector.BindVolatileInstance(GenericType<DataSetInfo>.Class, _dataSetInfo);
+            
+            StageRunner stageRunner = injector.GetInstance<StageRunner>();
+            stageRunner.StartStage();
+            stageRunner.AwaitStage();
             return null; // retrieve IDataSet<T2> somehow
         }
 

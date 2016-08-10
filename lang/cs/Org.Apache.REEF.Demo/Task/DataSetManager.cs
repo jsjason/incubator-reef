@@ -50,7 +50,7 @@ namespace Org.Apache.REEF.Demo.Task
         {
             if (_localPartitions.ContainsKey(dataSetId))
             {
-                return (IInputPartition<T>) _localPartitions[dataSetId].Single(partition => partition.Id.Equals(partitionId));
+                return (IInputPartition<T>)_localPartitions[dataSetId].Single(partition => partition.Id.Equals(partitionId));
             }
             else
             {

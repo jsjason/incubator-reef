@@ -53,7 +53,7 @@ namespace Org.Apache.REEF.Demo.Driver
 
         public IEnumerable<IPartitionDescriptor> GetPartitionDescriptors(Uri uri)
         {
-            //// if uri points to a file: IFileSystem.GetChildren(uri) will return uri as it is.
+            //// if uri points to a file: IFileSystem.GetChildren(uri) will return uri as is.
             //// if it points to a folder: IFileSystem.GetChildren(uri) will return its children files and folders.
             //// in case there is a child folder, then THIS WILL NOT WORK.. we need to traverse through the folder structure recursively
             return _fileSystem.GetChildren(uri)

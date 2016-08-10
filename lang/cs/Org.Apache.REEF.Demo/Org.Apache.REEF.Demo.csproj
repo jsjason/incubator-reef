@@ -41,7 +41,10 @@
     <Compile Include="Driver\IMiniDriverStarted.cs" />
     <Compile Include="Driver\IPartitionDescriptorFetcher.cs" />
     <Compile Include="Driver\MiniDriverConfiguration.cs" />
+    <Compile Include="Driver\MiniDriverNamedParameters.cs" />
+    <Compile Include="Driver\MiniDriverStarted.cs" />
     <Compile Include="Driver\StageRunner.cs" />
+    <Compile Include="Driver\TransformStage.cs" />
     <Compile Include="Examples\DataLoadContext.cs" />
     <Compile Include="Examples\DataSetUri.cs" />
     <Compile Include="Examples\DemoDriver.cs" />

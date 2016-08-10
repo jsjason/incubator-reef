@@ -35,5 +35,5 @@ interface ClrHandlersInitializer {
   /**
    * Returns the set of CLR handles.
    */
-  BridgeHandlerManager getClrHandlers(final String portNumber, final EvaluatorRequestorBridge evaluatorRequestorBridge);
+  void getClrHandlers(final String portNumber, final EvaluatorRequestorBridge evaluatorRequestorBridge);
 }

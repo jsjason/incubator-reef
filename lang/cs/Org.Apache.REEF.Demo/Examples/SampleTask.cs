@@ -45,7 +45,7 @@ namespace Org.Apache.REEF.Demo.Examples
             // This does not necessarily have to be done at the task; doing this in a context (service) may be better.
             foreach (string partitionId in _partitionIds)
             {
-                IInputPartition<byte[]> partition = _dataSetManager.FetchPartition<byte[]>(partitionId);
+                IInputPartition<byte[]> partition = _dataSetManager.FetchPartition<byte[]>(partitionId, partitionId);
 
                 // do something with the partition data.. deserialization needed
                 // e.g. IInputPartition<byte[]> -> IInputPartition<Vector>
