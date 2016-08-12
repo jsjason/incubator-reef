@@ -21,11 +21,8 @@ using Org.Apache.REEF.Tang.Annotations;
 
 namespace Org.Apache.REEF.Demo.Driver
 {
-    public class MiniDriverNamedParameters
+    [NamedParameter]
+    public sealed class SerializedTransformConfiguration : Name<string>
     {
-        [NamedParameter]
-        public class MiniDriverStartedHandlers : Name<ISet<IObserver<IMiniDriverStarted>>>
-        {
-        }
     }
 }

@@ -18,9 +18,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Org.Apache.REEF.Common.Context;
 using Org.Apache.REEF.Demo.Examples;
+using Org.Apache.REEF.Demo.Stage;
 using Org.Apache.REEF.Demo.Task;
 using Org.Apache.REEF.Driver.Context;
 using Org.Apache.REEF.Driver.Evaluator;
@@ -46,7 +48,8 @@ namespace Org.Apache.REEF.Demo.Driver
         private readonly AvroConfigurationSerializer _avroConfigurationSerializer;
         private readonly IDictionary<string, Queue<IConfiguration>> _partitionConfigurationsForDatasets;
         private readonly IDictionary<string, CountdownEvent> _latchesForDatasets;
-        private readonly ConcurrentDictionary<string, string> _contextIdToDataSetId;
+        private readonly ConcurrentDictionary<string, Tuple<string, string>> _contextIdToDataSetAndPartitionId;
+        private readonly ConcurrentDictionary<string, SynchronizedCollection<PartitionInfo>> _partitionInfosForDatasets;
 
         [Inject]
         private DataSetMaster(IEvaluatorRequestor evaluatorRequestor,
@@ -58,7 +61,8 @@ namespace Org.Apache.REEF.Demo.Driver
             _avroConfigurationSerializer = avroConfigurationSerializer;
             _partitionConfigurationsForDatasets = new Dictionary<string, Queue<IConfiguration>>();
             _latchesForDatasets = new Dictionary<string, CountdownEvent>();
-            _contextIdToDataSetId = new ConcurrentDictionary<string, string>();
+            _contextIdToDataSetAndPartitionId = new ConcurrentDictionary<string, Tuple<string, string>>();
+            _partitionInfosForDatasets = new ConcurrentDictionary<string, SynchronizedCollection<PartitionInfo>>();
         }
 
         public IDataSet<T> Load<T>(Uri uri)
@@ -82,6 +86,7 @@ namespace Org.Apache.REEF.Demo.Driver
             {
                 _partitionConfigurationsForDatasets[dataSetId] = partitionConfigurations;
                 _latchesForDatasets[dataSetId] = new CountdownEvent(partitionConfigurations.Count);
+                _partitionInfosForDatasets[dataSetId] = new SynchronizedCollection<PartitionInfo>();
 
                 _evaluatorRequestor.Submit(_evaluatorRequestor.NewBuilder()
                     .SetNumber(partitionConfigurations.Count)
@@ -92,7 +97,13 @@ namespace Org.Apache.REEF.Demo.Driver
             Logger.Log(Level.Info, "Waiting evaluators for {0}", dataSetId);
             _latchesForDatasets[dataSetId].Wait();
             Logger.Log(Level.Info, "Done waiting evaluators for {0}", dataSetId);
-            return null; // must return IDataSet
+
+            SynchronizedCollection<PartitionInfo> partitionInfos;
+            if (!_partitionInfosForDatasets.TryRemove(dataSetId, out partitionInfos))
+            {
+                throw new Exception(string.Format("This should not happen for {0}", dataSetId));
+            }
+            return new DataSet<T>(dataSetId, new DataSetInfo(dataSetId, partitionInfos.ToArray()));
         }
 
         public void OnNext(IAllocatedEvaluator allocatedEvaluator)
@@ -137,6 +148,9 @@ namespace Org.Apache.REEF.Demo.Driver
                 return;
             }
 
+            IInjector injector = TangFactory.GetTang().NewInjector(partitionConf);
+            string partitionId = injector.GetNamedInstance<DataPartitionId, string>();
+
             IConfiguration serviceConf = TangFactory.GetTang().NewConfigurationBuilder()
                 .BindSetEntry<SerializedInitialDataLoadPartitions, string>(
                     GenericType<SerializedInitialDataLoadPartitions>.Class,
@@ -148,7 +162,7 @@ namespace Org.Apache.REEF.Demo.Driver
                 .Set(ContextConfiguration.Identifier, contextId)
                 .Set(ContextConfiguration.OnContextStart, GenericType<DataLoadContext>.Class)
                 .Build();
-            _contextIdToDataSetId[contextId] = dataSetId;
+            _contextIdToDataSetAndPartitionId[contextId] = new Tuple<string, string>(dataSetId, partitionId);
 
             allocatedEvaluator.SubmitContextAndService(contextConf, serviceConf);
         }
@@ -156,13 +170,13 @@ namespace Org.Apache.REEF.Demo.Driver
         public void OnNext(IActiveContext activeContext)
         {
             Logger.Log(Level.Info, "Got {0}", activeContext);
-            string dataSetId = _contextIdToDataSetId[activeContext.Id];
-            Logger.Log(Level.Info, "Signal CountDownLatch for {0}", dataSetId);
+            Tuple<string, string> dataSetAndPartitionId = _contextIdToDataSetAndPartitionId[activeContext.Id];
+            string dataSetId = dataSetAndPartitionId.Item1;
+            string partitionId = dataSetAndPartitionId.Item2;
+            Logger.Log(Level.Info, "Signal CountDownLatch for {0} of {1}", partitionId, dataSetId);
             _latchesForDatasets[dataSetId].Signal();
 
-            // must pass this activeContext to the user
-            // For now, just dispose contexts right away for demonstration
-            activeContext.Dispose();
+            _partitionInfosForDatasets[dataSetId].Add(new PartitionInfo(partitionId, activeContext));
         }
 
         public void Store<T>(IDataSet<T> dataSet)

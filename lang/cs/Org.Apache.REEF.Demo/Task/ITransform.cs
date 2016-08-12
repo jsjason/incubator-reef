@@ -19,7 +19,7 @@ using Org.Apache.REEF.IO.PartitionedData;
 
 namespace Org.Apache.REEF.Demo.Task
 {
-    public interface ITransform<TInput, TOutput>
+    public interface ITransform<in TInput, out TOutput>
     {
         TOutput Apply(TInput input);
     }

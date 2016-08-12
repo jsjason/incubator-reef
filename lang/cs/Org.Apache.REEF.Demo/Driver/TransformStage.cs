@@ -16,20 +16,53 @@
 // under the License.
 
 using System;
+using System.Collections.Generic;
+using System.Threading;
+using Org.Apache.REEF.Common.Tasks;
+using Org.Apache.REEF.Demo.Task;
+using Org.Apache.REEF.Driver.Context;
 using Org.Apache.REEF.Tang.Annotations;
+using Org.Apache.REEF.Tang.Formats;
+using Org.Apache.REEF.Tang.Implementations.Configuration;
+using Org.Apache.REEF.Tang.Implementations.InjectionPlan;
+using Org.Apache.REEF.Tang.Interface;
+using Org.Apache.REEF.Tang.Util;
 
 namespace Org.Apache.REEF.Demo.Driver
 {
-    internal sealed class TransformStage : IObserver<IMiniDriverStarted>
+    internal sealed class TransformStage<T1, T2> : IObserver<IMiniDriverStarted>
     {
+        private readonly IInjectionFuture<StageRunner> _stageRunner;
+        private readonly IConfiguration _transformConf;
+
         [Inject]
-        private TransformStage()
+        private TransformStage(IInjectionFuture<StageRunner> stageRunner,
+                               [Parameter(typeof(SerializedTransformConfiguration))] string serializedTransformConf,
+                               AvroConfigurationSerializer avroConfigurationSerializer)
         {
+            _stageRunner = stageRunner;
+            _transformConf = avroConfigurationSerializer.FromString(serializedTransformConf);
         }
 
         public void OnNext(IMiniDriverStarted miniDriverStarted)
         {
-            Console.WriteLine(this + " " + miniDriverStarted.DataSetInfo.Id);
+            ISet<IActiveContext> activeContexts = new HashSet<IActiveContext>();
+            foreach (var partitionInfo in miniDriverStarted.DataSetInfo.PartitionInfos)
+            {
+                partitionInfo.LoadedContexts.ForEach(context => activeContexts.Add(context));
+            }
+
+            foreach (IActiveContext activeContext in activeContexts)
+            {
+                IConfiguration taskConf = TaskConfiguration.ConfigurationModule
+                    .Set(TaskConfiguration.Identifier, "TransformTask-" + activeContext.Id)
+                    .Set(TaskConfiguration.Task, GenericType<TransformTask<T1, T2>>.Class)
+                    .Build();
+                activeContext.SubmitTask(Configurations.Merge(taskConf, _transformConf));
+            }
+
+            Thread.Sleep(5000);
+            _stageRunner.Get().EndStage();
         }
 
         public void OnError(Exception e)

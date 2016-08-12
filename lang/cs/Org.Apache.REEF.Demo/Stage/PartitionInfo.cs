@@ -24,7 +24,7 @@ namespace Org.Apache.REEF.Demo.Stage
     public class PartitionInfo
     {
         private readonly string _id;
-        private readonly IList<IActiveContext> _loadedContexts;
+        private readonly List<IActiveContext> _loadedContexts;
 
         public PartitionInfo(string id, params IActiveContext[] loadedContexts)
         {
@@ -43,7 +43,7 @@ namespace Org.Apache.REEF.Demo.Stage
         /// <summary>
         /// LoadedContexts of the blocks that belong to this partition.
         /// </summary>
-        public IList<IActiveContext> LoadedContexts
+        public List<IActiveContext> LoadedContexts
         {
             get { return _loadedContexts; }
         }

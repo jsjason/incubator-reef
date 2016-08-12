@@ -15,17 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-using System;
-using System.Collections.Generic;
+using Org.Apache.REEF.Demo.Task;
 using Org.Apache.REEF.Tang.Annotations;
+using Org.Apache.REEF.Utilities;
 
-namespace Org.Apache.REEF.Demo.Driver
+namespace Org.Apache.REEF.Demo.Examples
 {
-    public class MiniDriverNamedParameters
+    public sealed class ByteToStringTransform : ITransform<byte[], string>
     {
-        [NamedParameter]
-        public class MiniDriverStartedHandlers : Name<ISet<IObserver<IMiniDriverStarted>>>
+        [Inject]
+        private ByteToStringTransform()
         {
+        }
+
+        public string Apply(byte[] input)
+        {
+            return ByteUtilities.ByteArraysToString(input);
         }
     }
 }

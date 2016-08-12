@@ -17,11 +17,13 @@
 
 using System;
 using Org.Apache.REEF.Demo.Driver;
+using Org.Apache.REEF.Demo.Task;
 using Org.Apache.REEF.Driver;
 using Org.Apache.REEF.Driver.Evaluator;
 using Org.Apache.REEF.Tang.Annotations;
 using Org.Apache.REEF.Tang.Implementations.Tang;
 using Org.Apache.REEF.Tang.Interface;
+using Org.Apache.REEF.Tang.Util;
 using Org.Apache.REEF.Utilities.Logging;
 
 namespace Org.Apache.REEF.Demo.Examples
@@ -32,7 +34,6 @@ namespace Org.Apache.REEF.Demo.Examples
 
         private readonly IDataSetMaster _dataSetMaster;
         private readonly Uri _dataSetUri;
-        private IDataSet<SomeSerializableClass> _dataSet;
         private readonly IEvaluatorRequestor _evaluatorRequestor;
 
         [Inject]
@@ -47,29 +48,26 @@ namespace Org.Apache.REEF.Demo.Examples
 
         public void OnNext(IDriverStarted driverStarted)
         {
-            LOG.Log(Level.Info, "Starting separate thread for dataset load.");
-            System.Threading.Tasks.Task task = new System.Threading.Tasks.Task(() =>
-            {
-                LOG.Log(Level.Info, "Separate thread loading!");
+            LOG.Log(Level.Info, "Start dataset loading.");
 
-                // this will spawn evaluators loaded with blocks
-                // the IDataSetMaster implementations will need to have OnNext(IAllocatedEvaluator) and OnNext(IActiveContext) handlers
-                _dataSet = _dataSetMaster.Load<SomeSerializableClass>(_dataSetUri);
+            // this will spawn evaluators loaded with blocks
+            // the IDataSetMaster implementations will need to have OnNext(IAllocatedEvaluator) and OnNext(IActiveContext) handlers
+            IDataSet<byte[]> _dataSet = _dataSetMaster.Load<byte[]>(_dataSetUri);
 
-                LOG.Log(Level.Info, "Separate thread loaded!");
+            LOG.Log(Level.Info, "Done loading dataset.");
 
-                // MiniDriver configuration
-                // information on which block is on which evaluator will be given
-                // IConfiguration conf = TangFactory.GetTang().NewConfigurationBuilder().Build();
+            // MiniDriver configuration
+            // information on which block is on which evaluator will be given
+            // IConfiguration conf = TangFactory.GetTang().NewConfigurationBuilder().Build();
 
-                // IDataSet<AnotherSerializableClass> anotherDataSet = _dataSet.RunStage<AnotherSerializableClass>(conf);
+            // IDataSet<AnotherSerializableClass> anotherDataSet = _dataSet.RunStage<AnotherSerializableClass>(conf);
 
-                // store the new dataset/model
-                // _dataSetMaster.Store(anotherDataSet);
-            });
-            //// task.Start();
-            task.RunSynchronously();
-            LOG.Log(Level.Info, "Started separate thread for dataset load.");
+            // store the new dataset/model
+            // _dataSetMaster.Store(anotherDataSet);
+            IConfiguration transformConf = TangFactory.GetTang().NewConfigurationBuilder()
+                .BindImplementation(GenericType<ITransform<byte[], string>>.Class, GenericType<ByteToStringTransform>.Class)
+                .Build();
+            IDataSet<string> dataSet2 = _dataSet.TransformPartitions<string>(transformConf);
         }
 
         public void OnCompleted()

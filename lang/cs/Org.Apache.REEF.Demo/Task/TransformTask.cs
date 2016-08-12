@@ -16,15 +16,28 @@
 // under the License.
 
 using System;
-using System.Collections.Generic;
+using Org.Apache.REEF.Common.Tasks;
 using Org.Apache.REEF.Tang.Annotations;
 
-namespace Org.Apache.REEF.Demo.Driver
+namespace Org.Apache.REEF.Demo.Task
 {
-    public class MiniDriverNamedParameters
+    public sealed class TransformTask<T1, T2> : ITask
     {
-        [NamedParameter]
-        public class MiniDriverStartedHandlers : Name<ISet<IObserver<IMiniDriverStarted>>>
+        private readonly ITransform<T1, T2> _transform;
+
+        [Inject]
+        private TransformTask(ITransform<T1, T2> transform)
+        {
+            _transform = transform;
+        }
+
+        public byte[] Call(byte[] memento)
+        {
+            Console.WriteLine(this + " " + _transform);
+            return null;
+        }
+
+        public void Dispose()
         {
         }
     }

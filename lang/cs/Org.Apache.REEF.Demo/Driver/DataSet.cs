@@ -20,17 +20,23 @@ using System.Collections.Generic;
 using Org.Apache.REEF.Demo.Stage;
 using Org.Apache.REEF.Demo.Task;
 using Org.Apache.REEF.Driver.Context;
+using Org.Apache.REEF.Tang.Formats;
 using Org.Apache.REEF.Tang.Implementations.Configuration;
 using Org.Apache.REEF.Tang.Implementations.Tang;
 using Org.Apache.REEF.Tang.Interface;
 using Org.Apache.REEF.Tang.Util;
+using Org.Apache.REEF.Utilities.Diagnostics;
+using Org.Apache.REEF.Utilities.Logging;
 
 namespace Org.Apache.REEF.Demo.Driver
 {
     public class DataSet<T> : IDataSet<T>
     {
+        private static readonly Logger Logger = Logger.GetLogger(typeof(DataSet<T>)); 
+
         private readonly string _id;
         private readonly DataSetInfo _dataSetInfo;
+        private readonly AvroConfigurationSerializer _avroConfigurationSerializer = new AvroConfigurationSerializer();
 
         public DataSet(string id,
                        DataSetInfo dataSetInfo)
@@ -49,14 +55,18 @@ namespace Org.Apache.REEF.Demo.Driver
             IInjector injector = TangFactory.GetTang().NewInjector(transformConf);
             if (!injector.IsInjectable(typeof(ITransform<T, T2>)))
             {
-                throw new Exception("Given configuration does not contain the correct ITransform configuration.");
+                Exceptions.Throw(new Exception("Given configuration does not contain the correct ITransform configuration."), Logger);
             }
 
-            IConfiguration stageConf = MiniDriverConfiguration.ConfigurationModule
-                .Set(MiniDriverConfiguration.OnDriverStarted, GenericType<TransformStage>.Class)
+            IConfiguration serializedTransformConf = TangFactory.GetTang().NewConfigurationBuilder()
+                .BindNamedParameter(typeof(SerializedTransformConfiguration), _avroConfigurationSerializer.ToString(transformConf))
                 .Build();
 
-            return RunStage<T2>(Configurations.Merge(transformConf, stageConf));
+            IConfiguration stageConf = MiniDriverConfiguration.ConfigurationModule
+                .Set(MiniDriverConfiguration.OnDriverStarted, GenericType<TransformStage<T, T2>>.Class)
+                .Build();
+
+            return RunStage<T2>(Configurations.Merge(serializedTransformConf, stageConf));
         }
 
         public IDataSet<T2> RunStage<T2>(IConfiguration stageConf)
@@ -66,13 +76,15 @@ namespace Org.Apache.REEF.Demo.Driver
             
             StageRunner stageRunner = injector.GetInstance<StageRunner>();
             stageRunner.StartStage();
-            stageRunner.AwaitStage();
+            stageRunner.EndStage();
+            Collect();
             return null; // retrieve IDataSet<T2> somehow
         }
 
         public IEnumerable<T> Collect()
         {
-            throw new NotImplementedException();
+            Array.ForEach(_dataSetInfo.PartitionInfos, info => info.LoadedContexts.ForEach(context => context.Dispose()));
+            return null;
         }
     }
 }

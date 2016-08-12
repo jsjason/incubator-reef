@@ -27,6 +27,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -41,10 +42,12 @@
     <Compile Include="Driver\IMiniDriverStarted.cs" />
     <Compile Include="Driver\IPartitionDescriptorFetcher.cs" />
     <Compile Include="Driver\MiniDriverConfiguration.cs" />
+    <Compile Include="Driver\SerializedTransformConfiguration.cs" />
     <Compile Include="Driver\MiniDriverNamedParameters.cs" />
     <Compile Include="Driver\MiniDriverStarted.cs" />
     <Compile Include="Driver\StageRunner.cs" />
     <Compile Include="Driver\TransformStage.cs" />
+    <Compile Include="Examples\ByteToStringTransform.cs" />
     <Compile Include="Examples\DataLoadContext.cs" />
     <Compile Include="Examples\DataSetUri.cs" />
     <Compile Include="Examples\DemoDriver.cs" />
@@ -65,6 +68,7 @@
     <Compile Include="Examples\PartitionIds.cs" />
     <Compile Include="Examples\SampleTask.cs" />
     <Compile Include="Task\DataPartitionId.cs" />
+    <Compile Include="Task\TransformTask.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Org.Apache.REEF.Client\Org.Apache.REEF.Client.csproj">
