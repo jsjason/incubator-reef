@@ -17,23 +17,41 @@
 
 using System;
 using Org.Apache.REEF.Common.Tasks;
+using Org.Apache.REEF.Demo.Driver;
+using Org.Apache.REEF.IO.PartitionedData;
 using Org.Apache.REEF.Tang.Annotations;
 
 namespace Org.Apache.REEF.Demo.Task
 {
     public sealed class TransformTask<T1, T2> : ITask
     {
+        private readonly DataSetManager _dataSetManager;
         private readonly ITransform<T1, T2> _transform;
+        private readonly string _oldDataSetId;
+        private readonly string _newDataSetId;
 
         [Inject]
-        private TransformTask(ITransform<T1, T2> transform)
+        private TransformTask(DataSetManager dataSetManager,
+                              ITransform<T1, T2> transform,
+                              [Parameter(typeof(OldDataSetIdNamedParameter))] string oldDataSetId,
+                              [Parameter(typeof(NewDataSetIdNamedParameter))] string newDataSetId)
         {
+            _dataSetManager = dataSetManager;
             _transform = transform;
+            _oldDataSetId = oldDataSetId;
+            _newDataSetId = newDataSetId;
         }
 
         public byte[] Call(byte[] memento)
         {
-            Console.WriteLine(this + " " + _transform);
+            Console.WriteLine(this + " " + _transform + " " + _oldDataSetId + " " + _newDataSetId);
+            foreach (IInputPartition<T1> partition in _dataSetManager.GetLocalPartitions<T1>(_oldDataSetId))
+            {
+                Console.WriteLine("Lookie!!!!");
+                Console.WriteLine(partition);
+                Console.WriteLine(_transform.Apply(partition.GetPartitionHandle()));
+            }
+
             return null;
         }
 

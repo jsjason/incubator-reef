@@ -58,5 +58,10 @@ namespace Org.Apache.REEF.Demo.Task
                 throw new NotImplementedException();
             }
         }
+
+        internal ISet<IInputPartition<T>> GetLocalPartitions<T>(string dataSetId)
+        {
+            return (ISet<IInputPartition<T>>)_localPartitions[dataSetId];
+        }
     }
 }

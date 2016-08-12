@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using Org.Apache.REEF.Common.Events;
+using Org.Apache.REEF.Demo.Driver;
 using Org.Apache.REEF.Demo.Task;
 using Org.Apache.REEF.IO.PartitionedData;
 using Org.Apache.REEF.Tang.Annotations;
@@ -37,6 +38,7 @@ namespace Org.Apache.REEF.Demo.Examples
 
         [Inject]
         private DataLoadContext([Parameter(typeof(SerializedInitialDataLoadPartitions))] ISet<string> seralizedInitialDataLoadPartitions,
+                                [Parameter(typeof(NewDataSetIdNamedParameter))] string dataSetId,
                                 AvroConfigurationSerializer avroConfigurationSerializer,
                                 IInjector injector,
                                 DataSetManager dataSetManager)
@@ -47,9 +49,10 @@ namespace Org.Apache.REEF.Demo.Examples
                     injector.ForkInjector(avroConfigurationSerializer.FromString(serializedInitialDataLoadPartition));
                 var inputPartition = forkedInjector.GetInstance<IInputPartition<byte[]>>();
 
-                dataSetManager.AddLocalPartition(inputPartition.Id, inputPartition);
+                dataSetManager.AddLocalPartition(dataSetId, inputPartition);
 
                 // for debugging
+                Console.WriteLine(dataSetId);
                 Console.WriteLine(inputPartition.Id);
                 Console.WriteLine(ByteUtilities.ByteArraysToString(inputPartition.GetPartitionHandle()));
             }

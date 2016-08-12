@@ -73,6 +73,8 @@ namespace Org.Apache.REEF.Demo.Driver
         {
             IInjector injector = TangFactory.GetTang().NewInjector(stageConf);
             injector.BindVolatileInstance(GenericType<DataSetInfo>.Class, _dataSetInfo);
+            injector.BindVolatileParameter(GenericType<OldDataSetIdNamedParameter>.Class, _id);
+            injector.BindVolatileParameter(GenericType<NewDataSetIdNamedParameter>.Class, _id + "-Transformed");
             
             StageRunner stageRunner = injector.GetInstance<StageRunner>();
             stageRunner.StartStage();

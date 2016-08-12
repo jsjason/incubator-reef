@@ -28,6 +28,7 @@ using Org.Apache.REEF.Driver.Context;
 using Org.Apache.REEF.Driver.Evaluator;
 using Org.Apache.REEF.Tang.Annotations;
 using Org.Apache.REEF.Tang.Formats;
+using Org.Apache.REEF.Tang.Implementations.Configuration;
 using Org.Apache.REEF.Tang.Implementations.Tang;
 using Org.Apache.REEF.Tang.Interface;
 using Org.Apache.REEF.Tang.Util;
@@ -162,9 +163,12 @@ namespace Org.Apache.REEF.Demo.Driver
                 .Set(ContextConfiguration.Identifier, contextId)
                 .Set(ContextConfiguration.OnContextStart, GenericType<DataLoadContext>.Class)
                 .Build();
+            IConfiguration contextParamConf = TangFactory.GetTang().NewConfigurationBuilder()
+                .BindNamedParameter(typeof(NewDataSetIdNamedParameter), dataSetId)
+                .Build();
             _contextIdToDataSetAndPartitionId[contextId] = new Tuple<string, string>(dataSetId, partitionId);
 
-            allocatedEvaluator.SubmitContextAndService(contextConf, serviceConf);
+            allocatedEvaluator.SubmitContextAndService(Configurations.Merge(contextConf, contextParamConf), serviceConf);
         }
 
         public void OnNext(IActiveContext activeContext)
