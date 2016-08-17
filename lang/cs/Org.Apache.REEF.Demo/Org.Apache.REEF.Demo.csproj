@@ -25,8 +25,10 @@
       <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Org.Apache.REEF.Wake, Version=0.16.0.0, Culture=neutral, PublicKeyToken=c27bf5b2e9a7ddb9, processorArchitecture=AMD64" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -42,26 +44,31 @@
     <Compile Include="Driver\IMiniDriverStarted.cs" />
     <Compile Include="Driver\IPartitionDescriptorFetcher.cs" />
     <Compile Include="Driver\MiniDriverConfiguration.cs" />
+    <Compile Include="Driver\LoadedDataSetIdNamedParameter.cs" />
     <Compile Include="Driver\NewDataSetIdNamedParameter.cs" />
     <Compile Include="Driver\OldDataSetIdNamedParameter.cs" />
+    <Compile Include="Driver\ResultCollector.cs" />
     <Compile Include="Driver\SerializedTransformConfiguration.cs" />
     <Compile Include="Driver\MiniDriverNamedParameters.cs" />
     <Compile Include="Driver\MiniDriverStarted.cs" />
     <Compile Include="Driver\StageRunner.cs" />
     <Compile Include="Driver\TransformStage.cs" />
+    <Compile Include="Examples\StringDuplicateTransform.cs" />
+    <Compile Include="Examples\IntSquareTransform.cs" />
+    <Compile Include="Examples\ByteToIntTransform.cs" />
     <Compile Include="Examples\ByteToStringTransform.cs" />
     <Compile Include="Examples\DataLoadContext.cs" />
     <Compile Include="Examples\DataSetUri.cs" />
     <Compile Include="Examples\DemoDriver.cs" />
     <Compile Include="Driver\IDataSetMaster.cs" />
-    <Compile Include="Examples\AnotheSerializableClass.cs" />
-    <Compile Include="Examples\SomeSerializableClass.cs" />
     <Compile Include="Driver\IDataSet.cs" />
     <Compile Include="Stage\DataSetInfo.cs" />
     <Compile Include="Stage\MiniDriver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Stage\PartitionInfo.cs" />
+    <Compile Include="Task\ResultReporter.cs" />
     <Compile Include="Task\DataSetManager.cs" />
+    <Compile Include="Task\ResultCodec.cs" />
     <Compile Include="Task\TransformedPartition.cs" />
     <Compile Include="Task\ITransform.cs" />
     <Compile Include="Task\SerializedInitialDataLoadPartitions.cs" />

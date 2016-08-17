@@ -28,22 +28,29 @@ namespace Org.Apache.REEF.Demo.Task
     [NotThreadSafe]
     public sealed class DataSetManager : IDataSetManager
     {
+        private readonly ResultReporter _resultReporter;
         private readonly IDictionary<string, ISet<IInputPartition<object>>> _localPartitions;
 
         [Inject]
-        private DataSetManager()
+        private DataSetManager(ResultReporter resultReporter)
         {
+            _resultReporter = resultReporter;
             _localPartitions = new Dictionary<string, ISet<IInputPartition<object>>>();
         }
 
-        internal void AddLocalPartition(string dataSetId, IInputPartition<object> inputPartition)
+        public void AddPartition<T>(string dataSetId, IInputPartition<T> inputPartition, bool reportToDriver)
         {
             if (!_localPartitions.ContainsKey(dataSetId))
             {
                 _localPartitions.Add(dataSetId, new HashSet<IInputPartition<object>>());
             }
 
-            _localPartitions[dataSetId].Add(inputPartition);
+            _localPartitions[dataSetId].Add((IInputPartition<object>)inputPartition);
+
+            if (reportToDriver)
+            {
+                _resultReporter.NewPartition(dataSetId, inputPartition.Id);
+            }
         }
 
         public IInputPartition<T> FetchPartition<T>(string dataSetId, string partitionId)
@@ -61,7 +68,8 @@ namespace Org.Apache.REEF.Demo.Task
 
         internal ISet<IInputPartition<T>> GetLocalPartitions<T>(string dataSetId)
         {
-            return (ISet<IInputPartition<T>>)_localPartitions[dataSetId];
+            var localPartitions = _localPartitions[dataSetId];
+            return new HashSet<IInputPartition<T>>(localPartitions.Select(p => (IInputPartition<T>)p));
         }
     }
 }

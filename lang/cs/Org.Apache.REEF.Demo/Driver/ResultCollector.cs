@@ -16,22 +16,41 @@
 // under the License.
 
 using System;
+using Org.Apache.REEF.Common.Context;
 using Org.Apache.REEF.Demo.Task;
 using Org.Apache.REEF.Tang.Annotations;
-using Org.Apache.REEF.Utilities;
 
-namespace Org.Apache.REEF.Demo.Examples
+namespace Org.Apache.REEF.Demo.Driver
 {
-    public sealed class ByteToStringTransform : ITransform<byte[], string>
+    internal sealed class ResultCollector : IObserver<IContextMessage>
     {
+        private readonly ResultCodec _resultCodec;
+        private readonly Guid _guid = Guid.NewGuid();
+
         [Inject]
-        private ByteToStringTransform()
+        private ResultCollector(ResultCodec resultCodec)
+        {
+            _resultCodec = resultCodec;
+            Console.WriteLine(_guid);
+        }
+
+        public void OnNext(IContextMessage msg)
+        {
+            string contextId = msg.MessageSourceId;
+            Console.WriteLine(contextId);
+            foreach (var tuple in _resultCodec.Decode(msg.Message))
+            {
+                Console.WriteLine(tuple.Item1 + " *** " + tuple.Item2);
+            }
+        }
+
+        public void OnCompleted()
         {
         }
 
-        public string Apply(byte[] input)
+        public void OnError(Exception e)
         {
-            return BitConverter.ToInt32(input, 0).ToString();
+            throw e;
         }
     }
 }

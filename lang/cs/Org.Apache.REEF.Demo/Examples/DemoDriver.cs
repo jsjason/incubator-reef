@@ -52,7 +52,7 @@ namespace Org.Apache.REEF.Demo.Examples
 
             // this will spawn evaluators loaded with blocks
             // the IDataSetMaster implementations will need to have OnNext(IAllocatedEvaluator) and OnNext(IActiveContext) handlers
-            IDataSet<byte[]> _dataSet = _dataSetMaster.Load<byte[]>(_dataSetUri);
+            IDataSet<byte[]> dataSet = _dataSetMaster.Load<byte[]>(_dataSetUri);
 
             LOG.Log(Level.Info, "Done loading dataset.");
 
@@ -67,7 +67,13 @@ namespace Org.Apache.REEF.Demo.Examples
             IConfiguration transformConf = TangFactory.GetTang().NewConfigurationBuilder()
                 .BindImplementation(GenericType<ITransform<byte[], string>>.Class, GenericType<ByteToStringTransform>.Class)
                 .Build();
-            IDataSet<string> dataSet2 = _dataSet.TransformPartitions<string>(transformConf);
+            IDataSet<string> dataSet2 = dataSet.TransformPartitions<string>(transformConf);
+
+            // IConfiguration anotherTransformConf = TangFactory.GetTang().NewConfigurationBuilder()
+            //    .BindImplementation(GenericType<ITransform<string, string>>.Class, GenericType<StringDuplicateTransform>.Class)
+            //    .Build();
+            // IDataSet<string> dataSet3 = dataSet2.TransformPartitions<string>(anotherTransformConf);
+            // dataSet3.Collect();
         }
 
         public void OnCompleted()

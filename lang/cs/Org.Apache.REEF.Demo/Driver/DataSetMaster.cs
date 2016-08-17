@@ -28,7 +28,6 @@ using Org.Apache.REEF.Driver.Context;
 using Org.Apache.REEF.Driver.Evaluator;
 using Org.Apache.REEF.Tang.Annotations;
 using Org.Apache.REEF.Tang.Formats;
-using Org.Apache.REEF.Tang.Implementations.Configuration;
 using Org.Apache.REEF.Tang.Implementations.Tang;
 using Org.Apache.REEF.Tang.Interface;
 using Org.Apache.REEF.Tang.Util;
@@ -51,11 +50,13 @@ namespace Org.Apache.REEF.Demo.Driver
         private readonly IDictionary<string, CountdownEvent> _latchesForDatasets;
         private readonly ConcurrentDictionary<string, Tuple<string, string>> _contextIdToDataSetAndPartitionId;
         private readonly ConcurrentDictionary<string, SynchronizedCollection<PartitionInfo>> _partitionInfosForDatasets;
+        private readonly ResultCollector _resultCollector;
 
         [Inject]
         private DataSetMaster(IEvaluatorRequestor evaluatorRequestor,
                               IPartitionDescriptorFetcher partitionDescriptorFetcher,
-                              AvroConfigurationSerializer avroConfigurationSerializer)
+                              AvroConfigurationSerializer avroConfigurationSerializer,
+                              ResultCollector resultCollector)
         {
             _evaluatorRequestor = evaluatorRequestor;
             _partitionDescriptorFetcher = partitionDescriptorFetcher;
@@ -64,6 +65,7 @@ namespace Org.Apache.REEF.Demo.Driver
             _latchesForDatasets = new Dictionary<string, CountdownEvent>();
             _contextIdToDataSetAndPartitionId = new ConcurrentDictionary<string, Tuple<string, string>>();
             _partitionInfosForDatasets = new ConcurrentDictionary<string, SynchronizedCollection<PartitionInfo>>();
+            _resultCollector = resultCollector;
         }
 
         public IDataSet<T> Load<T>(Uri uri)
@@ -104,7 +106,7 @@ namespace Org.Apache.REEF.Demo.Driver
             {
                 throw new Exception(string.Format("This should not happen for {0}", dataSetId));
             }
-            return new DataSet<T>(dataSetId, new DataSetInfo(dataSetId, partitionInfos.ToArray()));
+            return new DataSet<T>(dataSetId, new DataSetInfo(dataSetId, partitionInfos.ToArray()), _resultCollector);
         }
 
         public void OnNext(IAllocatedEvaluator allocatedEvaluator)
@@ -156,19 +158,19 @@ namespace Org.Apache.REEF.Demo.Driver
                 .BindSetEntry<SerializedInitialDataLoadPartitions, string>(
                     GenericType<SerializedInitialDataLoadPartitions>.Class,
                     _avroConfigurationSerializer.ToString(partitionConf))
+                .BindNamedParameter(typeof(LoadedDataSetIdNamedParameter), dataSetId)
                 .Build();
 
             string contextId = string.Format("Context-{0}", allocatedEvaluator.Id);
             IConfiguration contextConf = ContextConfiguration.ConfigurationModule
                 .Set(ContextConfiguration.Identifier, contextId)
                 .Set(ContextConfiguration.OnContextStart, GenericType<DataLoadContext>.Class)
+                .Set(ContextConfiguration.OnSendMessage, GenericType<ResultReporter>.Class)
                 .Build();
-            IConfiguration contextParamConf = TangFactory.GetTang().NewConfigurationBuilder()
-                .BindNamedParameter(typeof(NewDataSetIdNamedParameter), dataSetId)
-                .Build();
+
             _contextIdToDataSetAndPartitionId[contextId] = new Tuple<string, string>(dataSetId, partitionId);
 
-            allocatedEvaluator.SubmitContextAndService(Configurations.Merge(contextConf, contextParamConf), serviceConf);
+            allocatedEvaluator.SubmitContextAndService(contextConf, serviceConf);
         }
 
         public void OnNext(IActiveContext activeContext)

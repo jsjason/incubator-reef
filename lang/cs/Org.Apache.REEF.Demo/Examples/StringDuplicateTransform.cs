@@ -22,16 +22,16 @@ using Org.Apache.REEF.Utilities;
 
 namespace Org.Apache.REEF.Demo.Examples
 {
-    public sealed class ByteToStringTransform : ITransform<byte[], string>
+    public sealed class StringDuplicateTransform : ITransform<string, string>
     {
         [Inject]
-        private ByteToStringTransform()
+        private StringDuplicateTransform()
         {
         }
 
-        public string Apply(byte[] input)
+        public string Apply(string input)
         {
-            return BitConverter.ToInt32(input, 0).ToString();
+            return input + input;
         }
     }
 }

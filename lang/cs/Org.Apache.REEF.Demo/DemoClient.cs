@@ -15,6 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+using System;
+using System.IO;
 using Org.Apache.REEF.Client.API;
 using Org.Apache.REEF.Client.Local;
 using Org.Apache.REEF.Demo.Driver;
@@ -46,16 +48,18 @@ namespace Org.Apache.REEF.Demo
                 .Set(DriverConfiguration.OnDriverStarted, GenericType<DemoDriver>.Class)
                 .Set(DriverConfiguration.OnEvaluatorAllocated, GenericType<DataSetMaster>.Class)
                 .Set(DriverConfiguration.OnContextActive, GenericType<DataSetMaster>.Class)
+                .Set(DriverConfiguration.OnContextMessage, GenericType<ResultCollector>.Class)
                 .Build();
 
             IConfiguration addConf = TangFactory.GetTang().NewConfigurationBuilder()
-                .BindNamedParameter<DataSetUri, string>(GenericType<DataSetUri>.Class, @"C:\Users\t-joosj\Documents\abc")
+                .BindNamedParameter<DataSetUri, string>(GenericType<DataSetUri>.Class, @"C:\Users\t-joosj\Documents\ab")
                 .Build();
 
             JobRequest jobRequest = _jobRequestBuilder
                 .AddDriverConfiguration(Configurations.Merge(driverConf, addConf))
                 .AddGlobalAssemblyForType(typeof(DemoDriver))
                 .AddGlobalAssemblyForType(typeof(DataSetMaster))
+                .AddGlobalAssemblyForType(typeof(ResultCollector))
                 .SetJobIdentifier("DemoREEF")
                 .Build();
 
@@ -69,6 +73,30 @@ namespace Org.Apache.REEF.Demo
                     .Set(LocalRuntimeClientConfiguration.NumberOfEvaluators, "6")
                         .Build())
                 .GetInstance<DemoClient>().Run();
+        }
+
+        public static void Test(string[] args)
+        {
+            using (Stream stream = File.Open(@"C:\Users\t-joosj\Documents\ab\abc.txt", FileMode.CreateNew))
+            {
+                int i = 2;
+                byte[] bytes = BitConverter.GetBytes(i);
+                stream.Write(bytes, 0, bytes.Length);
+            }
+
+            using (Stream stream = File.Open(@"C:\Users\t-joosj\Documents\ab\abcd.txt", FileMode.CreateNew))
+            {
+                int i = 3;
+                byte[] bytes = BitConverter.GetBytes(i);
+                stream.Write(bytes, 0, bytes.Length);
+            }
+
+            using (Stream stream = File.Open(@"C:\Users\t-joosj\Documents\ab\abcde.txt", FileMode.CreateNew))
+            {
+                int i = 5;
+                byte[] bytes = BitConverter.GetBytes(i);
+                stream.Write(bytes, 0, bytes.Length);
+            }
         }
     }
 }

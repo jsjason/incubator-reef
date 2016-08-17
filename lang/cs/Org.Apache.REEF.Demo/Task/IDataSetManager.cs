@@ -25,5 +25,7 @@ namespace Org.Apache.REEF.Demo.Task
         /// Fetch a partition using its id.
         /// </summary>
         IInputPartition<T> FetchPartition<T>(string dataSetId, string partitionId);
+
+        void AddPartition<T>(string dataSetId, IInputPartition<T> partition, bool reportToDriver);
     }
 }

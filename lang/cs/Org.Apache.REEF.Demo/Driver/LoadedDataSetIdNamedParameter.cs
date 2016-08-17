@@ -16,22 +16,13 @@
 // under the License.
 
 using System;
-using Org.Apache.REEF.Demo.Task;
+using System.Collections.Generic;
 using Org.Apache.REEF.Tang.Annotations;
-using Org.Apache.REEF.Utilities;
 
-namespace Org.Apache.REEF.Demo.Examples
+namespace Org.Apache.REEF.Demo.Driver
 {
-    public sealed class ByteToStringTransform : ITransform<byte[], string>
+    [NamedParameter]
+    public sealed class LoadedDataSetIdNamedParameter : Name<string>
     {
-        [Inject]
-        private ByteToStringTransform()
-        {
-        }
-
-        public string Apply(byte[] input)
-        {
-            return BitConverter.ToInt32(input, 0).ToString();
-        }
     }
 }

@@ -36,13 +36,16 @@ namespace Org.Apache.REEF.Demo.Driver
 
         private readonly string _id;
         private readonly DataSetInfo _dataSetInfo;
+        private readonly ResultCollector _resultCollector;
         private readonly AvroConfigurationSerializer _avroConfigurationSerializer = new AvroConfigurationSerializer();
 
-        public DataSet(string id,
-                       DataSetInfo dataSetInfo)
+        internal DataSet(string id,
+                         DataSetInfo dataSetInfo,
+                         ResultCollector resultCollector)
         {
             _id = id;
             _dataSetInfo = dataSetInfo;
+            _resultCollector = resultCollector;
         }
 
         public string Id
@@ -78,8 +81,7 @@ namespace Org.Apache.REEF.Demo.Driver
             
             StageRunner stageRunner = injector.GetInstance<StageRunner>();
             stageRunner.StartStage();
-            stageRunner.EndStage();
-            Collect();
+            stageRunner.AwaitStage();
             return null; // retrieve IDataSet<T2> somehow
         }
 

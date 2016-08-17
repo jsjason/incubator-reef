@@ -38,7 +38,7 @@ namespace Org.Apache.REEF.Demo.Examples
 
         [Inject]
         private DataLoadContext([Parameter(typeof(SerializedInitialDataLoadPartitions))] ISet<string> seralizedInitialDataLoadPartitions,
-                                [Parameter(typeof(NewDataSetIdNamedParameter))] string dataSetId,
+                                [Parameter(typeof(LoadedDataSetIdNamedParameter))] string dataSetId,
                                 AvroConfigurationSerializer avroConfigurationSerializer,
                                 IInjector injector,
                                 DataSetManager dataSetManager)
@@ -49,7 +49,7 @@ namespace Org.Apache.REEF.Demo.Examples
                     injector.ForkInjector(avroConfigurationSerializer.FromString(serializedInitialDataLoadPartition));
                 var inputPartition = forkedInjector.GetInstance<IInputPartition<byte[]>>();
 
-                dataSetManager.AddLocalPartition(dataSetId, inputPartition);
+                dataSetManager.AddPartition(dataSetId, inputPartition, false);
 
                 // for debugging
                 Console.WriteLine(dataSetId);

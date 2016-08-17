@@ -15,9 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
+using System;
+using Org.Apache.REEF.Demo.Task;
+using Org.Apache.REEF.Tang.Annotations;
+using Org.Apache.REEF.Utilities;
+
 namespace Org.Apache.REEF.Demo.Examples
 {
-    public sealed class SomeSerializableClass
+    public sealed class ByteToIntTransform : ITransform<byte[], int>
     {
+        [Inject]
+        private ByteToIntTransform()
+        {
+        }
+
+        public int Apply(byte[] input)
+        {
+            return BitConverter.ToInt32(input, 0);
+        }
     }
 }

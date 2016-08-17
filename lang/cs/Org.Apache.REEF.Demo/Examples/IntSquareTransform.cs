@@ -15,9 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
+using System;
+using Org.Apache.REEF.Demo.Task;
+using Org.Apache.REEF.Tang.Annotations;
+using Org.Apache.REEF.Utilities;
+
 namespace Org.Apache.REEF.Demo.Examples
 {
-    public sealed class AnotherSerializableClass
+    public sealed class IntSquareTransform : ITransform<int, int>
     {
+        [Inject]
+        private IntSquareTransform()
+        {
+        }
+
+        public int Apply(int input)
+        {
+            return input * input;
+        }
     }
 }
