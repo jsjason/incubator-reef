@@ -23,32 +23,26 @@ using Org.Apache.REEF.Tang.Annotations;
 
 namespace Org.Apache.REEF.Demo.Task
 {
-    public sealed class TransformTask<T1, T2> : ITask
+    public sealed class CollectTask<T> : ITask
     {
         private readonly DataSetManager _dataSetManager;
-        private readonly ITransform<T1, T2> _transform;
         private readonly string _oldDataSetId;
-        private readonly string _newDataSetId;
 
         [Inject]
-        private TransformTask(DataSetManager dataSetManager,
-                              ITransform<T1, T2> transform,
-                              [Parameter(typeof(OldDataSetIdNamedParameter))] string oldDataSetId,
-                              [Parameter(typeof(NewDataSetIdNamedParameter))] string newDataSetId)
+        private CollectTask(DataSetManager dataSetManager,
+                            [Parameter(typeof(OldDataSetIdNamedParameter))] string oldDataSetId,
+                            )
         {
             _dataSetManager = dataSetManager;
-            _transform = transform;
             _oldDataSetId = oldDataSetId;
-            _newDataSetId = newDataSetId;
         }
 
         public byte[] Call(byte[] memento)
         {
-            Console.WriteLine(this + " " + _transform + " " + _oldDataSetId + " " + _newDataSetId);
-            foreach (IInputPartition<T1> partition in _dataSetManager.GetLocalPartitions<T1>(_oldDataSetId))
+            Console.WriteLine(this + " " + _oldDataSetId);
+            foreach (IInputPartition<T> partition in _dataSetManager.GetLocalPartitions<T>(_oldDataSetId))
             {
-                IInputPartition<T2> newPartition = new TransformedPartition<T1, T2>(partition.Id + "-Transformed", partition, _transform);
-                _dataSetManager.AddPartition(_newDataSetId, newPartition, true);
+                
             }
 
             return null;
