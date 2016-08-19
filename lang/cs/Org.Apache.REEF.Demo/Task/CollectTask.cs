@@ -16,6 +16,9 @@
 // under the License.
 
 using System;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using Org.Apache.REEF.Common.Tasks;
 using Org.Apache.REEF.Demo.Driver;
 using Org.Apache.REEF.IO.PartitionedData;
@@ -27,6 +30,7 @@ namespace Org.Apache.REEF.Demo.Task
     {
         private readonly DataSetManager _dataSetManager;
         private readonly string _oldDataSetId;
+        private readonly IFormatter _formatter = new BinaryFormatter();
 
         [Inject]
         private CollectTask(DataSetManager dataSetManager,
@@ -39,9 +43,18 @@ namespace Org.Apache.REEF.Demo.Task
         public byte[] Call(byte[] memento)
         {
             Console.WriteLine(this + " " + _oldDataSetId);
-            foreach (IInputPartition<T> partition in _dataSetManager.GetLocalPartitions<T>(_oldDataSetId))
+            using (MemoryStream stream = new MemoryStream())
             {
-                Console.WriteLine("Collect result: {0}", partition.GetPartitionHandle());
+                foreach (IInputPartition<T> partition in _dataSetManager.GetLocalPartitions<T>(_oldDataSetId))
+                {
+                    T obj = partition.GetPartitionHandle();
+                    Console.WriteLine("Collect result: {0}", obj);
+                    _formatter.Serialize(stream, obj);
+                }
+
+                _formatter
+                stream.Write();
+                stream.
             }
 
             return null;

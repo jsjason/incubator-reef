@@ -24,7 +24,7 @@ using Org.Apache.REEF.Tang.Annotations;
 
 namespace Org.Apache.REEF.Demo.Driver
 {
-    internal sealed class ResultCollector : IObserver<IContextMessage>
+    internal sealed class PartitionCollector : IObserver<IContextMessage>
     {
         private readonly ResultCodec _resultCodec;
 
@@ -32,7 +32,7 @@ namespace Org.Apache.REEF.Demo.Driver
             _partitionDictionary;
 
         [Inject]
-        private ResultCollector(ResultCodec resultCodec)
+        private PartitionCollector(ResultCodec resultCodec)
         {
             _resultCodec = resultCodec;
             _partitionDictionary = new ConcurrentDictionary<string, SynchronizedCollection<Tuple<string, string>>>();

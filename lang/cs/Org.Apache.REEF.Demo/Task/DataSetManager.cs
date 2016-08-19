@@ -28,13 +28,13 @@ namespace Org.Apache.REEF.Demo.Task
     [NotThreadSafe]
     public sealed class DataSetManager : IDataSetManager
     {
-        private readonly ResultReporter _resultReporter;
+        private readonly PartitionReporter _partitionReporter;
         private readonly IDictionary<string, ISet<IInputPartition<object>>> _localPartitions;
 
         [Inject]
-        private DataSetManager(ResultReporter resultReporter)
+        private DataSetManager(PartitionReporter partitionReporter)
         {
-            _resultReporter = resultReporter;
+            _partitionReporter = partitionReporter;
             _localPartitions = new Dictionary<string, ISet<IInputPartition<object>>>();
         }
 
@@ -46,12 +46,13 @@ namespace Org.Apache.REEF.Demo.Task
             }
 
             Console.WriteLine("Casting partition {0} to object", inputPartition.Id);
-            _localPartitions[dataSetId].Add((IInputPartition<object>)inputPartition);
+          
+            _localPartitions[dataSetId].Add((IInputPartition<object>)(object)inputPartition);
             Console.WriteLine("Casted partition {0} to object", inputPartition.Id);
 
             if (reportToDriver)
             {
-                _resultReporter.NewPartition(dataSetId, inputPartition.Id);
+                _partitionReporter.NewPartition(dataSetId, inputPartition.Id);
             }
         }
 

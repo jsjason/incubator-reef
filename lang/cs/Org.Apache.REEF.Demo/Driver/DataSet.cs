@@ -37,16 +37,16 @@ namespace Org.Apache.REEF.Demo.Driver
 
         private readonly string _id;
         private readonly DataSetInfo _dataSetInfo;
-        private readonly ResultCollector _resultCollector;
+        private readonly PartitionCollector _partitionCollector;
         private readonly AvroConfigurationSerializer _avroConfigurationSerializer = new AvroConfigurationSerializer();
 
         internal DataSet(string id,
                          DataSetInfo dataSetInfo,
-                         ResultCollector resultCollector)
+                         PartitionCollector partitionCollector)
         {
             _id = id;
             _dataSetInfo = dataSetInfo;
-            _resultCollector = resultCollector;
+            _partitionCollector = partitionCollector;
         }
 
         public string Id
@@ -88,7 +88,7 @@ namespace Org.Apache.REEF.Demo.Driver
 
             IDictionary<string, ISet<IActiveContext>> partitions = new Dictionary<string, ISet<IActiveContext>>();
             var contextDictionary = FormContextDictionary();
-            foreach (var keyValue in _resultCollector.PartitionDictionary)
+            foreach (var keyValue in _partitionCollector.PartitionDictionary)
             {
                 string contextId = keyValue.Key;
                 foreach (var dataSetAndPartitionIds in keyValue.Value)
@@ -110,7 +110,7 @@ namespace Org.Apache.REEF.Demo.Driver
             return new DataSet<T2>(newDataSetId,
                 new DataSetInfo(newDataSetId,
                     partitions.Select(pair => new PartitionInfo(pair.Key, pair.Value.ToArray())).ToArray()),
-                    _resultCollector);
+                    _partitionCollector);
         }
 
         public IEnumerable<T> Collect()

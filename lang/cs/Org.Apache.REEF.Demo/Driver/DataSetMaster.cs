@@ -50,13 +50,13 @@ namespace Org.Apache.REEF.Demo.Driver
         private readonly IDictionary<string, CountdownEvent> _latchesForDatasets;
         private readonly ConcurrentDictionary<string, Tuple<string, string>> _contextIdToDataSetAndPartitionId;
         private readonly ConcurrentDictionary<string, SynchronizedCollection<PartitionInfo>> _partitionInfosForDatasets;
-        private readonly ResultCollector _resultCollector;
+        private readonly PartitionCollector _partitionCollector;
 
         [Inject]
         private DataSetMaster(IEvaluatorRequestor evaluatorRequestor,
                               IPartitionDescriptorFetcher partitionDescriptorFetcher,
                               AvroConfigurationSerializer avroConfigurationSerializer,
-                              ResultCollector resultCollector)
+                              PartitionCollector partitionCollector)
         {
             _evaluatorRequestor = evaluatorRequestor;
             _partitionDescriptorFetcher = partitionDescriptorFetcher;
@@ -65,7 +65,7 @@ namespace Org.Apache.REEF.Demo.Driver
             _latchesForDatasets = new Dictionary<string, CountdownEvent>();
             _contextIdToDataSetAndPartitionId = new ConcurrentDictionary<string, Tuple<string, string>>();
             _partitionInfosForDatasets = new ConcurrentDictionary<string, SynchronizedCollection<PartitionInfo>>();
-            _resultCollector = resultCollector;
+            _partitionCollector = partitionCollector;
         }
 
         public IDataSet<T> Load<T>(Uri uri)
@@ -106,7 +106,7 @@ namespace Org.Apache.REEF.Demo.Driver
             {
                 throw new Exception(string.Format("This should not happen for {0}", dataSetId));
             }
-            return new DataSet<T>(dataSetId, new DataSetInfo(dataSetId, partitionInfos.ToArray()), _resultCollector);
+            return new DataSet<T>(dataSetId, new DataSetInfo(dataSetId, partitionInfos.ToArray()), _partitionCollector);
         }
 
         public void OnNext(IAllocatedEvaluator allocatedEvaluator)
@@ -165,7 +165,7 @@ namespace Org.Apache.REEF.Demo.Driver
             IConfiguration contextConf = ContextConfiguration.ConfigurationModule
                 .Set(ContextConfiguration.Identifier, contextId)
                 .Set(ContextConfiguration.OnContextStart, GenericType<DataLoadContext>.Class)
-                .Set(ContextConfiguration.OnSendMessage, GenericType<ResultReporter>.Class)
+                .Set(ContextConfiguration.OnSendMessage, GenericType<PartitionReporter>.Class)
                 .Build();
 
             _contextIdToDataSetAndPartitionId[contextId] = new Tuple<string, string>(dataSetId, partitionId);

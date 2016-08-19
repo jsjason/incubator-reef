@@ -23,15 +23,15 @@ using Org.Apache.REEF.Utilities;
 
 namespace Org.Apache.REEF.Demo.Task
 {
-    public sealed class ResultReporter : IContextMessageSource
+    public sealed class PartitionReporter : IContextMessageSource
     {
         private readonly string _contextId;
         private readonly ResultCodec _resultCodec; 
         private readonly IList<Tuple<string, string>> _newPartitions;
         
         [Inject]
-        private ResultReporter([Parameter(typeof(ContextConfigurationOptions.ContextIdentifier))] string contextId,
-                                ResultCodec resultCodec)
+        private PartitionReporter([Parameter(typeof(ContextConfigurationOptions.ContextIdentifier))] string contextId,
+                                  ResultCodec resultCodec)
         {
             _contextId = contextId;
             _resultCodec = resultCodec;
