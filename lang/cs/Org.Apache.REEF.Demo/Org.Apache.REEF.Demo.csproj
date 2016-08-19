@@ -29,6 +29,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -40,6 +41,7 @@
     <Compile Include="DemoClient.cs" />
     <Compile Include="Driver\DataSet.cs" />
     <Compile Include="Driver\DataSetMaster.cs" />
+    <Compile Include="Driver\DataSetTaskCompleteHandler.cs" />
     <Compile Include="Driver\FileInputPartitionDescriptorFetcher.cs" />
     <Compile Include="Driver\IMiniDriverStarted.cs" />
     <Compile Include="Driver\IPartitionDescriptorFetcher.cs" />
@@ -52,6 +54,7 @@
     <Compile Include="Driver\MiniDriverNamedParameters.cs" />
     <Compile Include="Driver\MiniDriverStarted.cs" />
     <Compile Include="Driver\StageRunner.cs" />
+    <Compile Include="Driver\CollectStage.cs" />
     <Compile Include="Driver\TransformStage.cs" />
     <Compile Include="Examples\StringDuplicateTransform.cs" />
     <Compile Include="Examples\IntSquareTransform.cs" />
@@ -62,6 +65,7 @@
     <Compile Include="Examples\DemoDriver.cs" />
     <Compile Include="Driver\IDataSetMaster.cs" />
     <Compile Include="Driver\IDataSet.cs" />
+    <Compile Include="IWrapper.cs" />
     <Compile Include="Stage\DataSetInfo.cs" />
     <Compile Include="Stage\MiniDriver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -79,6 +83,7 @@
     <Compile Include="Task\DataPartitionId.cs" />
     <Compile Include="Task\CollectTask.cs" />
     <Compile Include="Task\TransformTask.cs" />
+    <Compile Include="Wrapper.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Org.Apache.REEF.Client\Org.Apache.REEF.Client.csproj">

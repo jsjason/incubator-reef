@@ -47,8 +47,11 @@ namespace Org.Apache.REEF.Demo.Task
             Console.WriteLine(this + " " + _transform + " " + _oldDataSetId + " " + _newDataSetId);
             foreach (IInputPartition<T1> partition in _dataSetManager.GetLocalPartitions<T1>(_oldDataSetId))
             {
+                Console.WriteLine("CREATING NEW PARTITION {0} FROM {1}", partition.Id + "-Transformed", partition.Id);
                 IInputPartition<T2> newPartition = new TransformedPartition<T1, T2>(partition.Id + "-Transformed", partition, _transform);
+                Console.WriteLine("CREATED NEW PARTITION {0} FROM {1}", partition.Id + "-Transformed", partition.Id);
                 _dataSetManager.AddPartition(_newDataSetId, newPartition, true);
+                Console.WriteLine("ADDED NEW PARTITION {0}", partition.Id + "-Transformed");
             }
 
             return null;

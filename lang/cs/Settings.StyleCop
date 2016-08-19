@@ -667,7 +667,7 @@ under the License.
         </Rule>
         <Rule Name="UseBuiltInTypeAlias">
           <RuleSettings>
-            <BooleanProperty Name="Enabled">True</BooleanProperty>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
           </RuleSettings>
         </Rule>
         <Rule Name="UseShorthandForNullableTypes">

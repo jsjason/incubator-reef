@@ -58,7 +58,9 @@ namespace Org.Apache.REEF.Demo.Task
                     }
                     else
                     {
-                        return Optional<ContextMessage>.Of(ContextMessage.From(_contextId, _resultCodec.Encode(_newPartitions)));
+                        var message = Optional<ContextMessage>.Of(ContextMessage.From(_contextId, _resultCodec.Encode(_newPartitions)));
+                        _newPartitions.Clear();
+                        return message;
                     }
                 }
             }

@@ -16,22 +16,29 @@
 // under the License.
 
 using System;
-using Org.Apache.REEF.Demo.Task;
+using Org.Apache.REEF.Driver.Task;
 using Org.Apache.REEF.Tang.Annotations;
-using Org.Apache.REEF.Utilities;
 
-namespace Org.Apache.REEF.Demo.Examples
+namespace Org.Apache.REEF.Demo.Driver
 {
-    public sealed class ByteToIntTransform : ITransform<byte[], Int32>
+    internal sealed class DataSetTaskCompleteHandler : IObserver<ICompletedTask>
     {
         [Inject]
-        private ByteToIntTransform()
+        private DataSetTaskCompleteHandler()
         {
         }
 
-        public Int32 Apply(byte[] input)
+        public void OnNext(ICompletedTask completedTask)
         {
-            return BitConverter.ToInt32(input, 0);
+            // do nothing
+        }
+
+        public void OnCompleted()
+        {
+        }
+
+        public void OnError(Exception e)
+        {
         }
     }
 }

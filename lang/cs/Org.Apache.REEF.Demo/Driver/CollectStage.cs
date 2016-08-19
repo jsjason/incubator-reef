@@ -31,31 +31,23 @@ using Org.Apache.REEF.Tang.Util;
 
 namespace Org.Apache.REEF.Demo.Driver
 {
-    internal sealed class TransformStage<T1, T2> : IObserver<IMiniDriverStarted>
+    internal sealed class CollectStage<T> : IObserver<IMiniDriverStarted>
     {
         private readonly IInjectionFuture<StageRunner> _stageRunner;
-        private readonly IConfiguration _transformConf;
         private readonly string _oldDataSetId;
-        private readonly string _newDataSetId;
 
         [Inject]
-        private TransformStage(IInjectionFuture<StageRunner> stageRunner,
-                               [Parameter(typeof(SerializedTransformConfiguration))] string serializedTransformConf,
-                               [Parameter(typeof(OldDataSetIdNamedParameter))] string oldDataSetId,
-                               [Parameter(typeof(NewDataSetIdNamedParameter))] string newDataSetId,
-                               AvroConfigurationSerializer avroConfigurationSerializer)
+        private CollectStage(IInjectionFuture<StageRunner> stageRunner,
+                             [Parameter(typeof(OldDataSetIdNamedParameter))] string oldDataSetId)
         {
             _stageRunner = stageRunner;
-            _transformConf = avroConfigurationSerializer.FromString(serializedTransformConf);
             _oldDataSetId = oldDataSetId;
-            _newDataSetId = newDataSetId;
         }
 
         public void OnNext(IMiniDriverStarted miniDriverStarted)
         {
             IConfiguration dataSetIdConf = TangFactory.GetTang().NewConfigurationBuilder()
                 .BindNamedParameter(typeof(OldDataSetIdNamedParameter), _oldDataSetId)
-                .BindNamedParameter(typeof(NewDataSetIdNamedParameter), _newDataSetId)
                 .Build();
 
             ISet<IActiveContext> activeContexts = new HashSet<IActiveContext>();
@@ -67,10 +59,10 @@ namespace Org.Apache.REEF.Demo.Driver
             foreach (IActiveContext activeContext in activeContexts)
             {
                 IConfiguration taskConf = TaskConfiguration.ConfigurationModule
-                    .Set(TaskConfiguration.Identifier, "TransformTask-" + activeContext.Id)
-                    .Set(TaskConfiguration.Task, GenericType<TransformTask<T1, T2>>.Class)
+                    .Set(TaskConfiguration.Identifier, "CollectTask-" + activeContext.Id)
+                    .Set(TaskConfiguration.Task, GenericType<CollectTask<T>>.Class)
                     .Build();
-                activeContext.SubmitTask(Configurations.Merge(taskConf, _transformConf, dataSetIdConf));
+                activeContext.SubmitTask(Configurations.Merge(taskConf, dataSetIdConf));
             }
 
             Thread.Sleep(10000);

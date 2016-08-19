@@ -22,14 +22,14 @@ using Org.Apache.REEF.Utilities;
 
 namespace Org.Apache.REEF.Demo.Examples
 {
-    public sealed class IntSquareTransform : ITransform<int, int>
+    public sealed class IntSquareTransform : ITransform<Int32, Int32>
     {
         [Inject]
         private IntSquareTransform()
         {
         }
 
-        public int Apply(int input)
+        public Int32 Apply(Int32 input)
         {
             return input * input;
         }

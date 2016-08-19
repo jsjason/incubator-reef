@@ -15,23 +15,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
-using System;
-using Org.Apache.REEF.Demo.Task;
-using Org.Apache.REEF.Tang.Annotations;
-using Org.Apache.REEF.Utilities;
-
-namespace Org.Apache.REEF.Demo.Examples
+namespace Org.Apache.REEF.Demo
 {
-    public sealed class ByteToIntTransform : ITransform<byte[], Int32>
+    public class Wrapper<T> : IWrapper<T>
     {
-        [Inject]
-        private ByteToIntTransform()
+        private readonly T _obj;
+        public Wrapper(T obj)
         {
+            _obj = obj;
         }
 
-        public Int32 Apply(byte[] input)
+        public T Get
         {
-            return BitConverter.ToInt32(input, 0);
+            get { return _obj; }
         }
     }
 }

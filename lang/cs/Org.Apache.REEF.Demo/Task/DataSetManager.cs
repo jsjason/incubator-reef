@@ -45,7 +45,9 @@ namespace Org.Apache.REEF.Demo.Task
                 _localPartitions.Add(dataSetId, new HashSet<IInputPartition<object>>());
             }
 
+            Console.WriteLine("Casting partition {0} to object", inputPartition.Id);
             _localPartitions[dataSetId].Add((IInputPartition<object>)inputPartition);
+            Console.WriteLine("Casted partition {0} to object", inputPartition.Id);
 
             if (reportToDriver)
             {

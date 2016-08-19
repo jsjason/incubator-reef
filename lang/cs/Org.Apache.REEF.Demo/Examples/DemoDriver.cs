@@ -65,15 +65,40 @@ namespace Org.Apache.REEF.Demo.Examples
             // store the new dataset/model
             // _dataSetMaster.Store(anotherDataSet);
             IConfiguration transformConf = TangFactory.GetTang().NewConfigurationBuilder()
-                .BindImplementation(GenericType<ITransform<byte[], string>>.Class, GenericType<ByteToStringTransform>.Class)
+                .BindImplementation(GenericType<ITransform<byte[], Int32>>.Class, GenericType<ByteToIntTransform>.Class)
                 .Build();
-            IDataSet<string> dataSet2 = dataSet.TransformPartitions<string>(transformConf);
+            IDataSet<Int32> dataSet2 = dataSet.TransformPartitions<Int32>(transformConf);
 
-            // IConfiguration anotherTransformConf = TangFactory.GetTang().NewConfigurationBuilder()
-            //    .BindImplementation(GenericType<ITransform<string, string>>.Class, GenericType<StringDuplicateTransform>.Class)
-            //    .Build();
-            // IDataSet<string> dataSet3 = dataSet2.TransformPartitions<string>(anotherTransformConf);
-            // dataSet3.Collect();
+            Console.WriteLine("NOW!!!!!");
+            Console.WriteLine("Dataset id: {0}", dataSet2.Id);
+            foreach (var partitionInfo in dataSet2.DataSetInfo.PartitionInfos)
+            {
+                Console.WriteLine("Partition id: {0}", partitionInfo.Id);
+                foreach (var context in partitionInfo.LoadedContexts)
+                {
+                    Console.WriteLine("Context id: {0}", context.Id);
+                }
+            }
+            Console.WriteLine();
+
+            IConfiguration anotherTransformConf = TangFactory.GetTang().NewConfigurationBuilder()
+               .BindImplementation(GenericType<ITransform<Int32, Int32>>.Class, GenericType<IntSquareTransform>.Class)
+               .Build();
+            IDataSet<Int32> dataSet3 = dataSet2.TransformPartitions<Int32>(anotherTransformConf);
+
+            Console.WriteLine("NOW!!!!!");
+            Console.WriteLine("Dataset id: {0}", dataSet3.Id);
+            foreach (var partitionInfo in dataSet3.DataSetInfo.PartitionInfos)
+            {
+                Console.WriteLine("Partition id: {0}", partitionInfo.Id);
+                foreach (var context in partitionInfo.LoadedContexts)
+                {
+                    Console.WriteLine("Context id: {0}", context.Id);
+                }
+            }
+            Console.WriteLine();
+
+            dataSet3.Collect();
         }
 
         public void OnCompleted()

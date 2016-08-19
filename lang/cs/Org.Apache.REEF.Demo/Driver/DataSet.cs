@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Org.Apache.REEF.Demo.Stage;
 using Org.Apache.REEF.Demo.Task;
 using Org.Apache.REEF.Driver.Context;
@@ -74,21 +75,76 @@ namespace Org.Apache.REEF.Demo.Driver
 
         public IDataSet<T2> RunStage<T2>(IConfiguration stageConf)
         {
+            string newDataSetId = _id + "-Transformed";
+
             IInjector injector = TangFactory.GetTang().NewInjector(stageConf);
             injector.BindVolatileInstance(GenericType<DataSetInfo>.Class, _dataSetInfo);
             injector.BindVolatileParameter(GenericType<OldDataSetIdNamedParameter>.Class, _id);
-            injector.BindVolatileParameter(GenericType<NewDataSetIdNamedParameter>.Class, _id + "-Transformed");
+            injector.BindVolatileParameter(GenericType<NewDataSetIdNamedParameter>.Class, newDataSetId);
             
             StageRunner stageRunner = injector.GetInstance<StageRunner>();
             stageRunner.StartStage();
             stageRunner.AwaitStage();
-            return null; // retrieve IDataSet<T2> somehow
+
+            IDictionary<string, ISet<IActiveContext>> partitions = new Dictionary<string, ISet<IActiveContext>>();
+            var contextDictionary = FormContextDictionary();
+            foreach (var keyValue in _resultCollector.PartitionDictionary)
+            {
+                string contextId = keyValue.Key;
+                foreach (var dataSetAndPartitionIds in keyValue.Value)
+                {
+                    if (!dataSetAndPartitionIds.Item1.Equals(newDataSetId))
+                    {
+                        continue;
+                    }
+                    
+                    string partitionId = dataSetAndPartitionIds.Item2;
+                    if (!partitions.ContainsKey(partitionId))
+                    {
+                        partitions[partitionId] = new HashSet<IActiveContext>();
+                    }
+                    partitions[partitionId].Add(contextDictionary[contextId]);
+                }
+            }
+
+            return new DataSet<T2>(newDataSetId,
+                new DataSetInfo(newDataSetId,
+                    partitions.Select(pair => new PartitionInfo(pair.Key, pair.Value.ToArray())).ToArray()),
+                    _resultCollector);
         }
 
         public IEnumerable<T> Collect()
         {
+            IInjector injector = TangFactory.GetTang().NewInjector(MiniDriverConfiguration.ConfigurationModule
+                .Set(MiniDriverConfiguration.OnDriverStarted, GenericType<CollectStage<T>>.Class)
+                .Build());
+            injector.BindVolatileInstance(GenericType<DataSetInfo>.Class, _dataSetInfo);
+            injector.BindVolatileParameter(GenericType<OldDataSetIdNamedParameter>.Class, _id);
+
+            StageRunner stageRunner = injector.GetInstance<StageRunner>();
+            stageRunner.StartStage();
+            stageRunner.AwaitStage();
+
             Array.ForEach(_dataSetInfo.PartitionInfos, info => info.LoadedContexts.ForEach(context => context.Dispose()));
             return null;
+        }
+
+        private IDictionary<string, IActiveContext> FormContextDictionary()
+        {
+            IDictionary<string, IActiveContext> contextDictionary = new Dictionary<string, IActiveContext>();
+            foreach (PartitionInfo partitionInfo in _dataSetInfo.PartitionInfos)
+            {
+                foreach (IActiveContext context in partitionInfo.LoadedContexts)
+                {
+                    contextDictionary[context.Id] = context;
+                }
+            }
+            return contextDictionary;
+        }
+
+        public DataSetInfo DataSetInfo
+        {
+            get { return _dataSetInfo; }
         }
     }
 }

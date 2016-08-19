@@ -17,6 +17,8 @@
 
 using System;
 using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using Org.Apache.REEF.Client.API;
 using Org.Apache.REEF.Client.Local;
 using Org.Apache.REEF.Demo.Driver;
@@ -49,6 +51,7 @@ namespace Org.Apache.REEF.Demo
                 .Set(DriverConfiguration.OnEvaluatorAllocated, GenericType<DataSetMaster>.Class)
                 .Set(DriverConfiguration.OnContextActive, GenericType<DataSetMaster>.Class)
                 .Set(DriverConfiguration.OnContextMessage, GenericType<ResultCollector>.Class)
+                .Set(DriverConfiguration.OnTaskCompleted, GenericType<DataSetTaskCompleteHandler>.Class)
                 .Build();
 
             IConfiguration addConf = TangFactory.GetTang().NewConfigurationBuilder()
@@ -60,19 +63,43 @@ namespace Org.Apache.REEF.Demo
                 .AddGlobalAssemblyForType(typeof(DemoDriver))
                 .AddGlobalAssemblyForType(typeof(DataSetMaster))
                 .AddGlobalAssemblyForType(typeof(ResultCollector))
+                .AddGlobalAssemblyForType(typeof(DataSetTaskCompleteHandler))
                 .SetJobIdentifier("DemoREEF")
                 .Build();
 
             _reefClient.Submit(jobRequest);
         }
 
-        public static void Main(string[] args)
+        public static void MainOne(string[] args)
         {
             TangFactory.GetTang().NewInjector(
                 LocalRuntimeClientConfiguration.ConfigurationModule
                     .Set(LocalRuntimeClientConfiguration.NumberOfEvaluators, "6")
                         .Build())
                 .GetInstance<DemoClient>().Run();
+        }
+
+        public static void Main(string[] args)
+        {
+            Int32 i = 3;
+            object i2 = (object)i;
+            Console.WriteLine(i);
+            Console.WriteLine(i2);
+
+            IWrapper<Int32> t = new Wrapper<Int32>(3);
+            IWrapper<object> t2 = (IWrapper<object>)t;
+        }
+
+        public static void MainThree(string[] args)
+        {
+            IFormatter formatter = new BinaryFormatter();
+            using (Stream stream = new MemoryStream())
+            {
+                formatter.Serialize(stream, 4);
+                stream.Seek(0, SeekOrigin.Begin);
+                object o = formatter.Deserialize(stream);
+                Console.WriteLine(o);
+            }
         }
 
         public static void Test(string[] args)

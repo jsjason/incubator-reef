@@ -16,6 +16,8 @@
 // under the License.
 
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Org.Apache.REEF.Common.Context;
 using Org.Apache.REEF.Demo.Task;
 using Org.Apache.REEF.Tang.Annotations;
@@ -25,22 +27,25 @@ namespace Org.Apache.REEF.Demo.Driver
     internal sealed class ResultCollector : IObserver<IContextMessage>
     {
         private readonly ResultCodec _resultCodec;
-        private readonly Guid _guid = Guid.NewGuid();
+
+        private readonly ConcurrentDictionary<string, SynchronizedCollection<Tuple<string, string>>>
+            _partitionDictionary;
 
         [Inject]
         private ResultCollector(ResultCodec resultCodec)
         {
             _resultCodec = resultCodec;
-            Console.WriteLine(_guid);
+            _partitionDictionary = new ConcurrentDictionary<string, SynchronizedCollection<Tuple<string, string>>>();
         }
 
         public void OnNext(IContextMessage msg)
         {
             string contextId = msg.MessageSourceId;
-            Console.WriteLine(contextId);
+            var partitionsOnContext = _partitionDictionary.GetOrAdd(contextId, _ => new SynchronizedCollection<Tuple<string, string>>());
+
             foreach (var tuple in _resultCodec.Decode(msg.Message))
             {
-                Console.WriteLine(tuple.Item1 + " *** " + tuple.Item2);
+                partitionsOnContext.Add(tuple);
             }
         }
 
@@ -51,6 +56,11 @@ namespace Org.Apache.REEF.Demo.Driver
         public void OnError(Exception e)
         {
             throw e;
+        }
+
+        internal ConcurrentDictionary<string, SynchronizedCollection<Tuple<string, string>>> PartitionDictionary
+        {
+            get { return _partitionDictionary; }
         }
     }
 }

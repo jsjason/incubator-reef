@@ -16,6 +16,7 @@
 // under the License.
 
 using System.Collections.Generic;
+using Org.Apache.REEF.Demo.Stage;
 using Org.Apache.REEF.Tang.Interface;
 
 namespace Org.Apache.REEF.Demo.Driver
@@ -55,5 +56,7 @@ namespace Org.Apache.REEF.Demo.Driver
         /// </summary>
         /// <returns></returns>
         IEnumerable<T> Collect();
+
+        DataSetInfo DataSetInfo { get; }
     }
 }

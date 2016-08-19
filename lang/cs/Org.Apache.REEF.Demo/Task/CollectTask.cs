@@ -30,8 +30,7 @@ namespace Org.Apache.REEF.Demo.Task
 
         [Inject]
         private CollectTask(DataSetManager dataSetManager,
-                            [Parameter(typeof(OldDataSetIdNamedParameter))] string oldDataSetId,
-                            )
+                            [Parameter(typeof(OldDataSetIdNamedParameter))] string oldDataSetId)
         {
             _dataSetManager = dataSetManager;
             _oldDataSetId = oldDataSetId;
@@ -42,7 +41,7 @@ namespace Org.Apache.REEF.Demo.Task
             Console.WriteLine(this + " " + _oldDataSetId);
             foreach (IInputPartition<T> partition in _dataSetManager.GetLocalPartitions<T>(_oldDataSetId))
             {
-                
+                Console.WriteLine("Collect result: {0}", partition.GetPartitionHandle());
             }
 
             return null;
