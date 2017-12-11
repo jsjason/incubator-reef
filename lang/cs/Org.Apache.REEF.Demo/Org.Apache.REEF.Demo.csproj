@@ -1,0 +1,169 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{3CC970E7-BDD8-4494-8EA7-335A543CBCAC}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Org.Apache.REEF.Demo</RootNamespace>
+    <AssemblyName>Org.Apache.REEF.Demo</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\bin\x64\Debug\Org.Apache.REEF.Demo\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>keyfile.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Driver\DataSet.cs" />
+    <Compile Include="Driver\DataSetInfo.cs" />
+    <Compile Include="Driver\DataSetMaster.cs" />
+    <Compile Include="Driver\FileInputPartitionDescriptorFetcher.cs" />
+    <Compile Include="Driver\IDataSet.cs" />
+    <Compile Include="Driver\IDataSetMaster.cs" />
+    <Compile Include="Driver\IPartitionCollector.cs" />
+    <Compile Include="Driver\IPartitionDescriptorFetcher.cs" />
+    <Compile Include="Driver\LoadedDataSetIdNamedParameter.cs" />
+    <Compile Include="Driver\NewDataSetIdNamedParameter.cs" />
+    <Compile Include="Driver\OldDataSetIdNamedParameter.cs" />
+    <Compile Include="Driver\PartitionCollector.cs" />
+    <Compile Include="Driver\PartitionInfo.cs" />
+    <Compile Include="Driver\SerializedTransformConfiguration.cs" />
+    <Compile Include="Driver\StageRunner.cs" />
+    <Compile Include="Driver\TaskCompletedHandler.cs" />
+    <Compile Include="Driver\TransformStage.cs" />
+    <Compile Include="Evaluator\DataSetLoadContext.cs" />
+    <Compile Include="Evaluator\DataSetManager.cs" />
+    <Compile Include="Evaluator\TextFileSerializer.cs" />
+    <Compile Include="Example\LabelVector.cs" />
+    <Compile Include="Example\VectorConCat.cs" />
+    <Compile Include="Example\WriteStage.cs" />
+    <Compile Include="Example\WriteTask.cs" />
+    <Compile Include="Example\LabelNumTxtArraySerializer.cs" />
+    <Compile Include="Evaluator\IDataSetManager.cs" />
+    <Compile Include="Evaluator\InputPartitionId.cs" />
+    <Compile Include="Evaluator\IPartitionReporter.cs" />
+    <Compile Include="Evaluator\ITransform.cs" />
+    <Compile Include="Evaluator\PartitionReporter.cs" />
+    <Compile Include="Evaluator\SerializedInitialDataLoadPartitions.cs" />
+    <Compile Include="Evaluator\StringEnumerableCodec.cs" />
+    <Compile Include="Evaluator\TransformedPartition.cs" />
+    <Compile Include="Evaluator\TransformTask.cs" />
+    <Compile Include="Example\ByteArrayToStringTransform.cs" />
+    <Compile Include="Example\DataSetUri.cs" />
+    <Compile Include="Example\DemoClient.cs" />
+    <Compile Include="Example\DemoDriver.cs" />
+    <Compile Include="Example\LabelVectorTxt.cs" />
+    <Compile Include="Example\LabelNumTxt.cs" />
+    <Compile Include="Example\LabelVectorVector.cs" />
+    <Compile Include="Example\Num.cs" />
+    <Compile Include="Example\TextToVector.cs" />
+    <Compile Include="Example\SparseVector.cs" />
+    <Compile Include="Example\TextToLabelNumTxt.cs" />
+    <Compile Include="Example\NumToVector.cs" />
+    <Compile Include="Example\StringDuplicateTransform.cs" />
+    <Compile Include="Example\Txt.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Stage\IStageDriverCompletedTask.cs" />
+    <Compile Include="Stage\IStageDriverStarted.cs" />
+    <Compile Include="Stage\StageDriverCompletedTask.cs" />
+    <Compile Include="Stage\StageDriverConfiguration.cs" />
+    <Compile Include="Stage\StageDriverNamedParameters.cs" />
+    <Compile Include="Stage\StageDriverStarted.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="keyfile.snk" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Org.Apache.REEF.Client\Org.Apache.REEF.Client.csproj">
+      <Project>{5094c35b-4fdb-4322-ac05-45d684501cbf}</Project>
+      <Name>Org.Apache.REEF.Client</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Org.Apache.REEF.Common\Org.Apache.REEF.Common.csproj">
+      <Project>{545a0582-4105-44ce-b99c-b1379514a630}</Project>
+      <Name>Org.Apache.REEF.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Org.Apache.REEF.Driver\Org.Apache.REEF.Driver.csproj">
+      <Project>{a6baa2a7-f52f-4329-884e-1bcf711d6805}</Project>
+      <Name>Org.Apache.REEF.Driver</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Org.Apache.REEF.Evaluator\Org.Apache.REEF.Evaluator.csproj">
+      <Project>{1b983182-9c30-464c-948d-f87eb93a8240}</Project>
+      <Name>Org.Apache.REEF.Evaluator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Org.Apache.REEF.IO\Org.Apache.REEF.IO.csproj">
+      <Project>{dec0f0a8-dbef-4ebf-b69c-e2369c15abf1}</Project>
+      <Name>Org.Apache.REEF.IO</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Org.Apache.REEF.Tang\Org.Apache.REEF.Tang.csproj">
+      <Project>{97dbb573-3994-417a-9f69-ffa25f00d2a6}</Project>
+      <Name>Org.Apache.REEF.Tang</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Org.Apache.REEF.Utilities\Org.Apache.REEF.Utilities.csproj">
+      <Project>{79e7f89a-1dfb-45e1-8d43-d71a954aeb98}</Project>
+      <Name>Org.Apache.REEF.Utilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Org.Apache.REEF.Wake\Org.Apache.REEF.Wake.csproj">
+      <Project>{cdfb3464-4041-42b1-9271-83af24cd5008}</Project>
+      <Name>Org.Apache.REEF.Wake</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
